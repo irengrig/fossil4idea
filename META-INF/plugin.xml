@@ -1,0 +1,42 @@
+<idea-plugin version="2">
+  <id>fossil4idea</id>
+  <name>Fossil Integration</name>
+  <version>0.1</version>
+  <vendor email="Irina.Chernushina@jetbrains.com">Irina Chernushina</vendor>
+
+  <!-- <description><![CDATA[
+      Enter short description for your plugin here.<br>
+      <small>most HTML tags may be used</small>
+      ]]></description>
+
+  <change-notes><![CDATA[
+      Add change notes here.<br>
+      <small>most HTML tags may be used</small>
+      ]]>
+  </change-notes>       -->
+
+  <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Build+Number+Ranges for description -->
+  <idea-version since-build="123.0"/>
+
+  <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
+       on how to target different products -->
+  <!-- uncomment to enable plugin in all products
+  <depends>com.intellij.modules.lang</depends>
+  -->
+
+  <application-components>
+    <!-- Add your application components here -->
+  </application-components>
+
+  <project-components>
+  </project-components>
+
+  <actions>
+    <!-- Add your actions here -->
+  </actions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceImplementation="org.jetbrains.fossil.FossilConfiguration"/>
+    <vcs id="fossil" displayName="Fossil" vcsClass="org.jetbrains.fossil.FossilVcs" name="fossil"/>
+  </extensions>
+</idea-plugin>
