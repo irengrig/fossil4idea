@@ -47,10 +47,14 @@ public class FossilChangeProvider implements ChangeProvider {
     final List<File> files = ObjectsConvertor.fp2jiof(dirs);
     FilterDescendantIoFiles.getInstance().doFilter(files);
 
-    final PairConsumer<File, ChangeTypeEnum> consumer = new PairConsumer<File, ChangeTypeEnum>() {
+    final PairConsumer<File, FileStatus> consumer = new PairConsumer<File, FileStatus>() {
       @Override
-      public void consume(final File file, final ChangeTypeEnum changeTypeEnum) {
-        changelistBuilder.processChange(createChange(file, changeTypeEnum), FossilVcs.getVcsKey());
+      public void consume(final File file, final FileStatus changeTypeEnum) {
+        if (FileStatus.DELETED_FROM_FS.equals(changeTypeEnum)) {
+          changelistBuilder.processLocallyDeletedFile(VcsContextFactory.SERVICE.getInstance().createFilePathOnDeleted(file, false));
+        } else {
+          changelistBuilder.processChange(createChange(file, changeTypeEnum), FossilVcs.getVcsKey());
+        }
       }
     };
     for (File root : files) {
@@ -69,19 +73,19 @@ public class FossilChangeProvider implements ChangeProvider {
     }
   }
 
-  private Change createChange(final File file, final ChangeTypeEnum changeTypeEnum) {
+  private Change createChange(final File file, final FileStatus changeTypeEnum) {
     return new Change(createBefore(file, changeTypeEnum), createAfter(file, changeTypeEnum));
   }
 
-  private ContentRevision createBefore(final File file, final ChangeTypeEnum changeTypeEnum) {
-    if (ChangeTypeEnum.ADD.equals(changeTypeEnum) || ChangeTypeEnum.ADD_PLUS.equals(changeTypeEnum)) {
+  private ContentRevision createBefore(final File file, final FileStatus changeTypeEnum) {
+    if (FileStatus.ADDED.equals(changeTypeEnum)) {
       return null;
     }
     return new FossilContentRevision(createFilePath(file), new FossilRevisionNumber("HEAD", null));
   }
 
-  private ContentRevision createAfter(final File file, final ChangeTypeEnum changeTypeEnum) {
-    if (ChangeTypeEnum.DELETE.equals(changeTypeEnum)) {
+  private ContentRevision createAfter(final File file, final FileStatus changeTypeEnum) {
+    if (FileStatus.DELETED.equals(changeTypeEnum)) {
       return null;
     }
     final FilePath filePath = createFilePath(file);

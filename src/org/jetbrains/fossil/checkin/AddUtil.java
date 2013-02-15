@@ -58,7 +58,7 @@ public class AddUtil {
     }
   }
 
-  private static void deleteImpl(final Project project, final List<File> files) throws VcsException {
+  public static void deleteImpl(final Project project, final List<File> files) throws VcsException {
     final File parent = tryFindCommonParent(project, files);
     if (parent != null) {
       final FossilSimpleCommand command = new FossilSimpleCommand(project, parent, FCommandName.delete);

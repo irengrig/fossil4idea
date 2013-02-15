@@ -74,7 +74,13 @@ public class FossilCheckinEnvironment implements CheckinEnvironment {
   @Nullable
   @Override
   public List<VcsException> scheduleMissingFileForDeletion(final List<FilePath> files) {
-    return null;  //To change body of implemented methods use File | Settings | File Templates.
+    final List<VcsException> result = new ArrayList<VcsException>();
+    try {
+      AddUtil.deleteImpl(myFossilVcs.getProject(), ObjectsConvertor.convert(files, ObjectsConvertor.FILEPATH_FILE));
+    } catch (VcsException e) {
+      result.add(e);
+    }
+    return result;
   }
 
   @Nullable

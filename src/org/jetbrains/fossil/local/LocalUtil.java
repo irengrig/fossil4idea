@@ -3,6 +3,7 @@ package org.jetbrains.fossil.local;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vcs.FileStatus;
 import com.intellij.openapi.vcs.LineProcessEventListener;
 import com.intellij.openapi.vcs.changes.dbCommitted.ChangeTypeEnum;
 import com.intellij.util.Consumer;
@@ -23,7 +24,7 @@ import java.util.Map;
  */
 public class LocalUtil {
   public static void reportChanges(final Project project, final File directory,
-                                   final PairConsumer<File, ChangeTypeEnum> consumer) throws FossilException {
+                                   final PairConsumer<File, FileStatus> consumer) throws FossilException {
     final FossilLineCommand command = new FossilLineCommand(project, directory, FCommandName.changes);
     final StringBuilder err = new StringBuilder();
     command.startAndWait(new LineProcessEventListener() {
@@ -81,22 +82,23 @@ public class LocalUtil {
     }
   }
 
-  private static void parseChangesLine(final File base, final String s, final PairConsumer<File, ChangeTypeEnum> consumer) throws FossilException {
+  private static void parseChangesLine(final File base, final String s, final PairConsumer<File, FileStatus> consumer) throws FossilException {
     final String line = s.trim();
     final int spaceIdx = line.indexOf(' ');
     if (spaceIdx == -1) throw new FossilException("Can not parse status line: '" + s + "'");
-    final ChangeTypeEnum type = myLocalTypes.get(line.substring(0, spaceIdx));
+    final FileStatus type = myLocalTypes.get(line.substring(0, spaceIdx));
     if (type == null) {
       throw new FossilException("Can not parse status line: '" + s + "'");
     }
     consumer.consume(new File(base, line.substring(spaceIdx).trim()), type);
   }
 
-  private static final Map<String, ChangeTypeEnum> myLocalTypes = new HashMap<String, ChangeTypeEnum>(7);
+  private static final Map<String, FileStatus> myLocalTypes = new HashMap<String, FileStatus>(7);
   static {
-    myLocalTypes.put("EDITED", ChangeTypeEnum.MODIFY);
-    myLocalTypes.put("ADDED", ChangeTypeEnum.ADD);
-    myLocalTypes.put("DELETED", ChangeTypeEnum.DELETE);
+    myLocalTypes.put("EDITED", FileStatus.MODIFIED);
+    myLocalTypes.put("ADDED", FileStatus.ADDED);
+    myLocalTypes.put("DELETED", FileStatus.DELETED);
+    myLocalTypes.put("MISSING", FileStatus.DELETED_FROM_FS);
     // todo more?
   }
 }
