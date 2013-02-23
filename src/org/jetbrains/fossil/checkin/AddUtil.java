@@ -16,10 +16,7 @@ import org.jetbrains.fossil.commandLine.FossilTextCommand;
 import org.jetbrains.fossil.util.FilterDescendantIoFiles;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -29,32 +26,17 @@ import java.util.Set;
  */
 public class AddUtil {
   public static void scheduleForAddition(final Project project, final List<File> list) throws VcsException {
-    final Set<File> excludeSet = new HashSet<File>();
-
-    final HashSet<File> containsSet = new HashSet<File>(list);
     final List<File> checkList = new ArrayList<File>(list);
-    new FilterDescendantIoFiles().doFilter(checkList);
-    for (File file : checkList) {
-      FileUtil.processFilesRecursively(file, new Processor<File>() {
-        @Override
-        public boolean process(final File file) {
-          if (! containsSet.contains(file)) {
-            excludeSet.add(file);
-          }
-          return true;
-        }
-      });
+    for (Iterator<File> iterator = checkList.iterator(); iterator.hasNext(); ) {
+      File file = iterator.next();
+      if (file.isDirectory()) {
+        iterator.remove();
+      }
     }
 
-    final List<List<File>> split = new CollectionSplitter<File>(5).split(list);
+    final List<List<File>> split = new CollectionSplitter<File>(5).split(checkList);
     for (List<File> files : split) {
       addImpl(project, files);
-    }
-    if (! excludeSet.isEmpty()) {
-      final List<List<File>> splitExclude = new CollectionSplitter<File>(5).split(excludeSet);
-      for (List<File> files : splitExclude) {
-        deleteImpl(project, files);
-      }
     }
   }
 

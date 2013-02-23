@@ -12,6 +12,7 @@ import com.intellij.openapi.vcs.update.UpdateEnvironment;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.fossil.checkin.FossilCheckinEnvironment;
 import org.jetbrains.fossil.local.FossilChangeProvider;
+import org.jetbrains.fossil.local.FossilRollbackEnvironment;
 
 /**
  * Created with IntelliJ IDEA.

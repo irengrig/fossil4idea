@@ -47,18 +47,8 @@ public class FossilChangeProvider implements ChangeProvider {
     final List<File> files = ObjectsConvertor.fp2jiof(dirs);
     FilterDescendantIoFiles.getInstance().doFilter(files);
 
-    final PairConsumer<File, FileStatus> consumer = new PairConsumer<File, FileStatus>() {
-      @Override
-      public void consume(final File file, final FileStatus changeTypeEnum) {
-        if (FileStatus.DELETED_FROM_FS.equals(changeTypeEnum)) {
-          changelistBuilder.processLocallyDeletedFile(VcsContextFactory.SERVICE.getInstance().createFilePathOnDeleted(file, false));
-        } else {
-          changelistBuilder.processChange(createChange(file, changeTypeEnum), FossilVcs.getVcsKey());
-        }
-      }
-    };
     for (File root : files) {
-      LocalUtil.reportChanges(myProject, root, consumer);
+      LocalUtil.reportChanges(myProject, root, changelistBuilder);
       // todo and ignored
       final LocalFileSystem lfs = LocalFileSystem.getInstance();
       LocalUtil.reportUnversioned(myProject, root, new Consumer<File>() {
@@ -73,35 +63,6 @@ public class FossilChangeProvider implements ChangeProvider {
     }
   }
 
-  private Change createChange(final File file, final FileStatus changeTypeEnum) {
-    return new Change(createBefore(file, changeTypeEnum), createAfter(file, changeTypeEnum));
-  }
-
-  private ContentRevision createBefore(final File file, final FileStatus changeTypeEnum) {
-    if (FileStatus.ADDED.equals(changeTypeEnum)) {
-      return null;
-    }
-    return new FossilContentRevision(createFilePath(file), new FossilRevisionNumber("HEAD", null));
-  }
-
-  private ContentRevision createAfter(final File file, final FileStatus changeTypeEnum) {
-    if (FileStatus.DELETED.equals(changeTypeEnum)) {
-      return null;
-    }
-    final FilePath filePath = createFilePath(file);
-    if (filePath.getFileType() != null && ! filePath.isDirectory() && filePath.getFileType().isBinary()) {
-      return new CurrentBinaryContentRevision(filePath);
-    }
-    return new CurrentContentRevision(filePath);
-  }
-
-  // seems that folders are not versioned
-  private FilePath createFilePath(final File file) {
-    if (! file.exists()) {
-      return VcsContextFactory.SERVICE.getInstance().createFilePathOnDeleted(file, false);
-    }
-    return VcsContextFactory.SERVICE.getInstance().createFilePathOn(file);
-  }
 
   public boolean isModifiedDocumentTrackingRequired() {
     return false; // todo as in svn & git

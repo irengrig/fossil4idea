@@ -13,6 +13,8 @@ import java.util.Date;
  * Time: 11:04 PM
  */
 public class FossilRevisionNumber implements VcsRevisionNumber {
+  public final static FossilRevisionNumber UNKNOWN = new FossilRevisionNumber("0", null);
+
   // todo special HEAD revision??
   @NotNull
   private final String myHash;
@@ -45,5 +47,22 @@ public class FossilRevisionNumber implements VcsRevisionNumber {
 
   public Date getDate() {
     return myDate;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    final FossilRevisionNumber that = (FossilRevisionNumber) o;
+
+    if (!myHash.equals(that.myHash)) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return myHash.hashCode();
   }
 }
