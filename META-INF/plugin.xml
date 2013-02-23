@@ -25,18 +25,21 @@
   -->
 
   <application-components>
-    <!-- Add your application components here -->
   </application-components>
 
   <project-components>
   </project-components>
 
   <actions>
-    <!-- Add your actions here -->
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="org.jetbrains.fossil.FossilConfiguration"/>
     <vcs id="fossil" displayName="Fossil" vcsClass="org.jetbrains.fossil.FossilVcs" name="fossil"/>
   </extensions>
+    <module-components>
+        <component>
+            <implementation-class>fossil4ideatest</implementation-class>
+        </component>
+    </module-components>
 </idea-plugin>
