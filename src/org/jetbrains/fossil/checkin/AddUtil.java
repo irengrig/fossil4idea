@@ -83,7 +83,7 @@ public class AddUtil {
     }
   }
 
-  private static File tryFindCommonParent(final Project project, final List<File> files) {
+  public static File tryFindCommonParent(final Project project, final List<File> files) {
     if (files.isEmpty()) return null;
     if (files.size() == 1) return files.get(0).getParentFile();
 

@@ -54,6 +54,7 @@ public class BaseFossilTest {
   protected VcsDirtyScopeManager myDirtyScopeManager;
   protected ProjectLevelVcsManager myVcsManager;
   private TempDirTestFixture myTempDirTestFixture;
+  protected FossilVcs myVcs;
 
   @Before
   public void setUp() throws Exception {
@@ -87,6 +88,8 @@ public class BaseFossilTest {
         }
       }
     });
+    startChangeProvider();
+    myVcs = FossilVcs.getInstance(myProject);
   }
 
   private void createRepositoryTreeInside(final String tempDirPath) throws VcsException, IOException {

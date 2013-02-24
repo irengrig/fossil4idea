@@ -2,21 +2,25 @@ package org.jetbrains.test;
 
 import com.intellij.openapi.vcs.FileStatus;
 import com.intellij.openapi.vcs.VcsConfiguration;
+import com.intellij.openapi.vcs.VcsException;
 import com.intellij.openapi.vcs.VcsShowConfirmationOption;
 import com.intellij.openapi.vcs.changes.Change;
 import com.intellij.openapi.vfs.VirtualFile;
 import junit.framework.Assert;
 import org.junit.Test;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Irina.Chernushina
- * Date: 2/23/13
- * Time: 11:21 PM
+ * Date: 2/24/13
+ * Time: 3:44 PM
  */
-public class FossilVfsListenerTest extends BaseFossilTest {
+public class FossilCheckinTest extends BaseFossilTest {
   @Test
-  public void testAddFile() throws Exception {
+  public void testSimpleCheckin() throws Exception {
     setStandardConfirmation(VcsConfiguration.StandardConfirmation.ADD, VcsShowConfirmationOption.Value.DO_ACTION_SILENTLY);
     final VirtualFile file = createFileInCommand("a with space.txt", "111");
     sleep(100);
@@ -25,5 +29,8 @@ public class FossilVfsListenerTest extends BaseFossilTest {
     final Change change = myChangeListManager.getChange(file);
     Assert.assertNotNull(change);
     Assert.assertTrue(FileStatus.ADDED.equals(change.getFileStatus()));
+
+    final List<VcsException> commit = myVcs.getCheckinEnvironment().commit(Collections.singletonList(change), "***");
+    Assert.assertTrue(commit == null || commit.isEmpty());
   }
 }
