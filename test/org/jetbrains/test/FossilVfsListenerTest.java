@@ -43,14 +43,7 @@ public class FossilVfsListenerTest extends BaseFossilTest {
 
     final List<VcsException> commit = myVcs.getCheckinEnvironment().commit(Collections.singletonList(change), "***");
     Assert.assertTrue(commit == null || commit.isEmpty());
-    myDirtyScopeManager.markEverythingDirty();
-    myChangeListManager.ensureUpToDate(false);
-    final List<LocalChangeList> changeListsCopy = myChangeListManager.getChangeListsCopy();
-    int cnt = 0;
-    for (LocalChangeList localChangeList : changeListsCopy) {
-      cnt += localChangeList.getChanges().size();
-    }
-    Assert.assertEquals(0, cnt);
+    assertNoLocalChanges();
 
     final FilePath delFilePath = new FilePathImpl(new File(file.getPath()), false);
     setStandardConfirmation(VcsConfiguration.StandardConfirmation.REMOVE, VcsShowConfirmationOption.Value.DO_ACTION_SILENTLY);

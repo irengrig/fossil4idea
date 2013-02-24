@@ -32,5 +32,34 @@ public class FossilCheckinTest extends BaseFossilTest {
 
     final List<VcsException> commit = myVcs.getCheckinEnvironment().commit(Collections.singletonList(change), "***");
     Assert.assertTrue(commit == null || commit.isEmpty());
+    assertNoLocalChanges();
+  }
+
+  @Test
+  public void testModificationCheckin() throws Exception {
+    setStandardConfirmation(VcsConfiguration.StandardConfirmation.ADD, VcsShowConfirmationOption.Value.DO_ACTION_SILENTLY);
+    final VirtualFile file = createFileInCommand("a with space.txt", "111");
+    sleep(100);
+    myDirtyScopeManager.markEverythingDirty();
+    myChangeListManager.ensureUpToDate(false);
+    final Change change = myChangeListManager.getChange(file);
+    Assert.assertNotNull(change);
+    Assert.assertTrue(FileStatus.ADDED.equals(change.getFileStatus()));
+
+    final List<VcsException> commit = myVcs.getCheckinEnvironment().commit(Collections.singletonList(change), "***");
+    Assert.assertTrue(commit == null || commit.isEmpty());
+    assertNoLocalChanges();
+
+    editFileInCommand(myProject, file, "981230213dh2bdbwcwed26y876er32178dewhdjw");
+
+    myDirtyScopeManager.markEverythingDirty();
+    myChangeListManager.ensureUpToDate(false);
+    final Change changeEdit = myChangeListManager.getChange(file);
+    Assert.assertNotNull(changeEdit);
+    Assert.assertTrue(FileStatus.MODIFIED.equals(changeEdit.getFileStatus()));
+
+    final List<VcsException> commitEdit = myVcs.getCheckinEnvironment().commit(Collections.singletonList(changeEdit), "***");
+    Assert.assertTrue(commitEdit == null || commitEdit.isEmpty());
+    assertNoLocalChanges();
   }
 }

@@ -12,6 +12,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vcs.*;
 import com.intellij.openapi.vcs.changes.ChangeListManager;
+import com.intellij.openapi.vcs.changes.LocalChangeList;
 import com.intellij.openapi.vcs.changes.VcsDirtyScopeManager;
 import com.intellij.openapi.vfs.CharsetToolkit;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -37,6 +38,9 @@ import org.junit.rules.TestName;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
+
+import static junit.framework.Assert.assertTrue;
 
 /**
  * Created with IntelliJ IDEA.
@@ -201,6 +205,40 @@ public class BaseFossilTest {
       protected void run() throws Throwable {
         try {
           file.delete(this);
+        }
+        catch(IOException ex) {
+          throw new RuntimeException(ex);
+        }
+      }
+    }.execute();
+  }
+
+  protected void assertNoLocalChanges() {
+    myDirtyScopeManager.markEverythingDirty();
+    myChangeListManager.ensureUpToDate(false);
+    final List<LocalChangeList> changeListsCopy = myChangeListManager.getChangeListsCopy();
+    int cnt = 0;
+    for (LocalChangeList localChangeList : changeListsCopy) {
+      cnt += localChangeList.getChanges().size();
+    }
+    Assert.assertEquals(0, cnt);
+  }
+
+  public static void editFileInCommand(final Project project, final VirtualFile file, final String newContent) {
+    assertTrue(file.isValid());
+    file.getTimeStamp();
+    new WriteCommandAction.Simple(project) {
+      @Override
+      protected void run() throws Throwable {
+        try {
+          long newModTs = Math.max(System.currentTimeMillis(), file.getModificationStamp() + 1100);
+          final long newTs = Math.max(System.currentTimeMillis(), file.getTimeStamp() + 1100);
+          file.setBinaryContent(newContent.getBytes(), newModTs, newTs);
+          final File file1 = new File(file.getPath());
+          FileUtil.writeToFile(file1, newContent.getBytes());
+          file.refresh(false, false);
+          newModTs = Math.max(System.currentTimeMillis() + 1100, file.getModificationStamp() + 1100);
+          assertTrue(file1 + " / " + newModTs, file1.setLastModified(newModTs));
         }
         catch(IOException ex) {
           throw new RuntimeException(ex);
