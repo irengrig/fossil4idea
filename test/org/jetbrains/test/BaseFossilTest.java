@@ -194,4 +194,18 @@ public class BaseFossilTest {
       //
     }
   }
+
+  public static void deleteFileInCommand(final Project project, final VirtualFile file) {
+    new WriteCommandAction.Simple(project) {
+      @Override
+      protected void run() throws Throwable {
+        try {
+          file.delete(this);
+        }
+        catch(IOException ex) {
+          throw new RuntimeException(ex);
+        }
+      }
+    }.execute();
+  }
 }
