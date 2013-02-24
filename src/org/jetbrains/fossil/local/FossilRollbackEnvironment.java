@@ -26,12 +26,20 @@ public class FossilRollbackEnvironment extends DefaultRollbackEnvironment {
   @Override
   public void rollbackChanges(final List<Change> changes, final List<VcsException> vcsExceptions,
                               @NotNull final RollbackProgressListener listener) {
-     LocalUtil.rollbackChanges(changes, listener);
+    try {
+      LocalUtil.rollbackChanges(myFossilVcs.getProject(), changes, listener);
+    } catch (VcsException e) {
+      vcsExceptions.add(e);
+    }
   }
 
   @Override
   public void rollbackMissingFileDeletion(final List<FilePath> files, final List<VcsException> exceptions,
                                           final RollbackProgressListener listener) {
-    //To change body of implemented methods use File | Settings | File Templates.
+    try {
+      LocalUtil.rollbackLocallyDeletedChanges(myFossilVcs.getProject(), files, listener);
+    } catch (VcsException e) {
+      exceptions.add(e);
+    }
   }
 }

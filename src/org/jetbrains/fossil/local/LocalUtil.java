@@ -3,10 +3,7 @@ package org.jetbrains.fossil.local;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.vcs.FilePath;
-import com.intellij.openapi.vcs.FilePathImpl;
-import com.intellij.openapi.vcs.FileStatus;
-import com.intellij.openapi.vcs.LineProcessEventListener;
+import com.intellij.openapi.vcs.*;
 import com.intellij.openapi.vcs.actions.VcsContextFactory;
 import com.intellij.openapi.vcs.changes.*;
 import com.intellij.openapi.vcs.changes.dbCommitted.ChangeTypeEnum;
@@ -15,8 +12,10 @@ import com.intellij.util.Consumer;
 import com.intellij.util.PairConsumer;
 import org.jetbrains.fossil.FossilException;
 import org.jetbrains.fossil.FossilVcs;
+import org.jetbrains.fossil.checkin.AddUtil;
 import org.jetbrains.fossil.commandLine.FCommandName;
 import org.jetbrains.fossil.commandLine.FossilLineCommand;
+import org.jetbrains.fossil.commandLine.FossilSimpleCommand;
 import org.jetbrains.fossil.repository.FossilContentRevision;
 import org.jetbrains.fossil.repository.FossilRevisionNumber;
 
@@ -146,7 +145,30 @@ public class LocalUtil {
     return VcsContextFactory.SERVICE.getInstance().createFilePathOn(file);
   }
 
-  public static void rollbackChanges(final List<Change> changes, final RollbackProgressListener listener) {
+  public static void rollbackChanges(final Project project, final List<Change> changes, final RollbackProgressListener listener) throws VcsException {
+    final List<File> files = ChangesUtil.getIoFilesFromChanges(changes);
+    rollbackFiles(project, listener, files);
+  }
 
+  private static void rollbackFiles(final Project project, final RollbackProgressListener listener, final List<File> files) throws VcsException {
+    final File parent = AddUtil.tryFindCommonParent(project, files);
+    if (parent != null) {
+      final FossilSimpleCommand command = new FossilSimpleCommand(project, parent, FCommandName.revert);
+      for (File file : files) {
+        command.addParameters(file.getPath());
+      }
+      command.run();
+    } else {
+      for (File file : files) {
+        final FossilSimpleCommand command = new FossilSimpleCommand(project, MoveWorker.findParent(file), FCommandName.revert);
+        command.addParameters(file.getPath());
+        command.run();
+        listener.accept(file);
+      }
+    }
+  }
+
+  public static void rollbackLocallyDeletedChanges(final Project project, final List<FilePath> files, final RollbackProgressListener listener) throws VcsException {
+    rollbackFiles(project, listener, ObjectsConvertor.fp2jiof(files));
   }
 }
