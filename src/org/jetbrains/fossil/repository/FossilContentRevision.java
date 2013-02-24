@@ -59,4 +59,8 @@ public class FossilContentRevision implements ContentRevision {
   public FossilRevisionNumber getRevisionNumber() {
     return myNumber;
   }
+
+  public Project getProject() {
+    return myProject;
+  }
 }

@@ -6,6 +6,7 @@ import org.jetbrains.fossil.FossilException;
 import org.jetbrains.fossil.commandLine.FCommandName;
 import org.jetbrains.fossil.commandLine.FossilSimpleCommand;
 import org.jetbrains.fossil.local.MoveWorker;
+import org.jetbrains.fossil.repository.FossilRevisionNumber;
 
 import java.io.File;
 import java.util.Date;
@@ -23,6 +24,17 @@ public class CommitWorker {
 
   public CommitWorker(final Project project) {
     myProject = project;
+  }
+
+  public FossilRevisionNumber getBaseRevisionNumber(final File file) throws VcsException {
+    final String baseRevision = getBaseRevision(file);
+    final ArtifactInfo artifactInfo = getArtifactInfo(baseRevision, file);
+    return new FossilRevisionNumber(baseRevision, artifactInfo.getDate());
+  }
+
+  public FossilRevisionNumber getRevisionNumber(final File file, final String revNum) throws VcsException {
+    final ArtifactInfo artifactInfo = getArtifactInfo(revNum, file);
+    return new FossilRevisionNumber(revNum, artifactInfo.getDate());
   }
 
   public String getBaseRevision(final File file) throws VcsException {

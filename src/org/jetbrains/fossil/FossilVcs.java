@@ -8,6 +8,7 @@ import com.intellij.openapi.vcs.ProjectLevelVcsManager;
 import com.intellij.openapi.vcs.VcsKey;
 import com.intellij.openapi.vcs.changes.ChangeProvider;
 import com.intellij.openapi.vcs.checkin.CheckinEnvironment;
+import com.intellij.openapi.vcs.history.VcsHistoryProvider;
 import com.intellij.openapi.vcs.rollback.RollbackEnvironment;
 import com.intellij.openapi.vcs.update.UpdateEnvironment;
 import org.jetbrains.annotations.Nullable;
@@ -15,6 +16,7 @@ import org.jetbrains.fossil.checkin.FossilCheckinEnvironment;
 import org.jetbrains.fossil.local.FossilChangeProvider;
 import org.jetbrains.fossil.local.FossilRollbackEnvironment;
 import org.jetbrains.fossil.local.FossilVfsListener;
+import org.jetbrains.fossil.log.FossilHistoryProvider;
 
 /**
  * Created with IntelliJ IDEA.
@@ -75,6 +77,12 @@ public class FossilVcs extends AbstractVcs {
   @Override
   protected RollbackEnvironment createRollbackEnvironment() {
     return new FossilRollbackEnvironment(this);
+  }
+
+  @Nullable
+  @Override
+  public VcsHistoryProvider getVcsHistoryProvider() {
+    return new FossilHistoryProvider(this);
   }
 
   @Nullable
