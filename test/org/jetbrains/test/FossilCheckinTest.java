@@ -127,4 +127,35 @@ public class FossilCheckinTest extends BaseFossilTest {
     Assert.assertTrue(commitRenamed == null || commitRenamed.isEmpty());
     assertNoLocalChanges();
   }
+
+  @Test
+  public void testRenameDirCheckin() throws Exception {
+    setStandardConfirmation(VcsConfiguration.StandardConfirmation.ADD, VcsShowConfirmationOption.Value.DO_ACTION_SILENTLY);
+    final VirtualFile dir = createDirInCommand(myBaseVf, "dir");
+    final VirtualFile file = createFileInCommand(dir, "a with space.txt", "111");
+    sleep(100);
+    myDirtyScopeManager.markEverythingDirty();
+    myChangeListManager.ensureUpToDate(false);
+    final Change change = myChangeListManager.getChange(file);
+    Assert.assertNotNull(change);
+    Assert.assertTrue(FileStatus.ADDED.equals(change.getFileStatus()));
+
+    final List<VcsException> commit = myVcs.getCheckinEnvironment().commit(Collections.singletonList(change), "***");
+    Assert.assertTrue(commit == null || commit.isEmpty());
+    assertNoLocalChanges();
+
+    renameFileInCommand(myProject, dir, "newName");
+    Assert.assertTrue(file != null && file.isValid());
+
+    myDirtyScopeManager.markEverythingDirty();
+    myChangeListManager.ensureUpToDate(false);
+    final Change changeRenamed = myChangeListManager.getChange(file);
+    Assert.assertNotNull(changeRenamed);
+    Assert.assertTrue(FileStatus.MODIFIED.equals(changeRenamed.getFileStatus()));
+    Assert.assertTrue(changeRenamed.isMoved());
+
+    final List<VcsException> commitRenamed = myVcs.getCheckinEnvironment().commit(Collections.singletonList(changeRenamed), "***");
+    Assert.assertTrue(commitRenamed == null || commitRenamed.isEmpty());
+    assertNoLocalChanges();
+  }
 }
