@@ -1,5 +1,8 @@
 package org.jetbrains.fossil.local;
 
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.impl.FileDocumentManagerImpl;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vcs.*;
@@ -61,11 +64,21 @@ public class FossilChangeProvider implements ChangeProvider {
         }
       });
     }
+    final FileDocumentManager instance = FileDocumentManagerImpl.getInstance();
+    final Document[] documents = instance.getUnsavedDocuments();
+    for (Document document : documents) {
+      final VirtualFile file = instance.getFile(document);
+      if (file != null) {
+        if (FileStatus.NOT_CHANGED.equals(changeListManagerGate.getStatus(file))) {
+          changelistBuilder.processChange(LocalUtil.createChange(myProject, new File(file.getPath()), FileStatus.MODIFIED), FossilVcs.getVcsKey());
+        }
+      }
+    }
   }
 
 
   public boolean isModifiedDocumentTrackingRequired() {
-    return false; // todo as in svn & git
+    return true;
   }
 
   public void doCleanup(List<VirtualFile> virtualFiles) {

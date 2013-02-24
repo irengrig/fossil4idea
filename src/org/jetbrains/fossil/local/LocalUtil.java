@@ -41,7 +41,7 @@ public class LocalUtil {
       public void onLineAvailable(final String s, final Key key) {
         if (ProcessOutputTypes.STDOUT.equals(key)) {
           try {
-            parseChangesLine(directory, s, clb);
+            parseChangesLine(project, directory, s, clb);
           } catch (FossilException e) {
             err.append(e.getMessage());
           }
@@ -91,7 +91,7 @@ public class LocalUtil {
     }
   }
 
-  private static void parseChangesLine(final File base, final String s, final ChangelistBuilder clb) throws FossilException {
+  private static void parseChangesLine(final Project project, final File base, final String s, final ChangelistBuilder clb) throws FossilException {
     final String line = s.trim();
     final int spaceIdx = line.indexOf(' ');
     if (spaceIdx == -1) throw new FossilException("Can not parse status line: '" + s + "'");
@@ -99,7 +99,7 @@ public class LocalUtil {
     final FileStatus type = myLocalTypes.get(typeName);
     final File file = new File(base, line.substring(spaceIdx).trim());
     if (type != null) {
-      clb.processChange(createChange(file, type), FossilVcs.getVcsKey());
+      clb.processChange(createChange(project, file, type), FossilVcs.getVcsKey());
     } else if ("MISSING".equals(typeName)) {
       clb.processLocallyDeletedFile(VcsContextFactory.SERVICE.getInstance().createFilePathOnDeleted(file, false));
     } else if ("RENAMED".equals(typeName)) {
@@ -116,15 +116,15 @@ public class LocalUtil {
     myLocalTypes.put("DELETED", FileStatus.DELETED);
   }
 
-  private static Change createChange(final File file, final FileStatus changeTypeEnum) {
-    return new Change(createBefore(file, changeTypeEnum), createAfter(file, changeTypeEnum));
+  public static Change createChange(final Project project, final File file, final FileStatus changeTypeEnum) {
+    return new Change(createBefore(project, file, changeTypeEnum), createAfter(file, changeTypeEnum));
   }
 
-  private static ContentRevision createBefore(final File file, final FileStatus changeTypeEnum) {
+  private static ContentRevision createBefore(final Project project, final File file, final FileStatus changeTypeEnum) {
     if (FileStatus.ADDED.equals(changeTypeEnum)) {
       return null;
     }
-    return new FossilContentRevision(createFilePath(file), new FossilRevisionNumber("HEAD", null));
+    return new FossilContentRevision(project, createFilePath(file), new FossilRevisionNumber("HEAD", null));
   }
 
   private static ContentRevision createAfter(final File file, final FileStatus changeTypeEnum) {
