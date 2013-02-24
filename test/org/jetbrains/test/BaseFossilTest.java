@@ -246,4 +246,32 @@ public class BaseFossilTest {
       }
     }.execute();
   }
+
+  public static void renameFileInCommand(final Project project, final VirtualFile file, final String newName) {
+    new WriteCommandAction.Simple(project) {
+      @Override
+      protected void run() throws Throwable {
+        try {
+          file.rename(this, newName);
+        }
+        catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }.execute().throwException();
+  }
+
+  public static void moveFileInCommand(final Project project, final VirtualFile file, final VirtualFile newParent) {
+    new WriteCommandAction.Simple(project) {
+      @Override
+      protected void run() throws Throwable {
+        try {
+          file.move(this, newParent);
+        }
+        catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }.execute();
+  }
 }

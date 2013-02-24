@@ -24,12 +24,14 @@ public class MoveWorker {
 
   public void doRename(final File oldPath, final File newPath) throws VcsException {
     final FossilSimpleCommand command = new FossilSimpleCommand(myProject, findParent(oldPath), FCommandName.rename);
+    command.addParameters(oldPath.getPath());
     command.addParameters(newPath.getName());
     command.run();
   }
 
   public void doMove(final File oldPath, final File targetDir) throws VcsException {
     final FossilSimpleCommand command = new FossilSimpleCommand(myProject, findParent(oldPath), FCommandName.rename);
+    command.addParameters(oldPath.getPath());
     command.addParameters(targetDir.getPath());
     command.run();
   }
