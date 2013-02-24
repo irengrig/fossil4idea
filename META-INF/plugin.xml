@@ -37,9 +37,4 @@
     <projectService serviceImplementation="org.jetbrains.fossil.FossilConfiguration"/>
     <vcs id="fossil" displayName="Fossil" vcsClass="org.jetbrains.fossil.FossilVcs" name="fossil"/>
   </extensions>
-    <module-components>
-        <component>
-            <implementation-class>fossil4ideatest</implementation-class>
-        </component>
-    </module-components>
 </idea-plugin>
