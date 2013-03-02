@@ -1,8 +1,10 @@
 package org.jetbrains.fossil.checkin;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vcs.VcsException;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.fossil.FossilException;
 import org.jetbrains.fossil.commandLine.FCommandName;
 import org.jetbrains.fossil.commandLine.FossilSimpleCommand;
@@ -20,6 +22,7 @@ import java.util.List;
  * Time: 2:59 PM
  */
 public class CheckinUtil {
+  public static final String BREAK_SEQUENCE = "contains CR/NL line endings; commit anyhow (yes/no/all)?";
   private final Project myProject;
 
   public CheckinUtil(final Project project) {
@@ -32,12 +35,33 @@ public class CheckinUtil {
   public List<String> checkin(final List<File> files, final String comment) throws VcsException {
     final File parent = AddUtil.tryFindCommonParent(myProject, files);
     if (parent != null) {
-      final FossilSimpleCommand command = new FossilSimpleCommand(myProject, parent, FCommandName.commit);
-      command.addParameters("-m", "\"" + StringUtil.escapeStringCharacters(comment) + "\"");
-      for (File file : files) {
-        command.addParameters(file.getPath());
+      String result = null;
+      for (int i = 0; i < 2; i++) {
+        final FossilSimpleCommand command = new FossilSimpleCommand(myProject, parent, FCommandName.commit, BREAK_SEQUENCE);
+        command.addParameters("-m", StringUtil.escapeStringCharacters(comment));
+        for (File file : files) {
+          command.addParameters(file.getPath());
+        }
+        result = command.run();
+        if (result.contains(BREAK_SEQUENCE)) {
+          final int ok[] = new int[1];
+          UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+            @Override
+            public void run() {
+              ok[0] = Messages.showOkCancelDialog(myProject, "File(s) you are attempting to commit, contain CR/NL line endings;\n" +
+                  "Fossil plugin needs to disable CR/NL check by changing crnl-glob setting to '*'.\n" +
+                  "Do you wish to change crnl-glob setting and continue?", "CR/NL line endings", Messages.getQuestionIcon());
+            }
+          });
+          if (ok[0] == Messages.OK) {
+            final FossilSimpleCommand settingsCommand = new FossilSimpleCommand(myProject, parent, FCommandName.settings);
+            settingsCommand.addParameters("crnl-glob", "*");
+            settingsCommand.run();
+            continue;
+          }
+        }
+        break;
       }
-      final String result = command.run();
       return Collections.singletonList(parseHash(result));
     } else {
       final List<String> hashes = new ArrayList<String>();

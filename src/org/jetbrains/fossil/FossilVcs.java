@@ -6,8 +6,10 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vcs.AbstractVcs;
 import com.intellij.openapi.vcs.ProjectLevelVcsManager;
 import com.intellij.openapi.vcs.VcsKey;
+import com.intellij.openapi.vcs.annotate.AnnotationProvider;
 import com.intellij.openapi.vcs.changes.ChangeProvider;
 import com.intellij.openapi.vcs.checkin.CheckinEnvironment;
+import com.intellij.openapi.vcs.diff.DiffProvider;
 import com.intellij.openapi.vcs.history.VcsHistoryProvider;
 import com.intellij.openapi.vcs.rollback.RollbackEnvironment;
 import com.intellij.openapi.vcs.update.UpdateEnvironment;
@@ -16,6 +18,7 @@ import org.jetbrains.fossil.checkin.FossilCheckinEnvironment;
 import org.jetbrains.fossil.local.FossilChangeProvider;
 import org.jetbrains.fossil.local.FossilRollbackEnvironment;
 import org.jetbrains.fossil.local.FossilVfsListener;
+import org.jetbrains.fossil.log.FossilAnnotationProvider;
 import org.jetbrains.fossil.log.FossilHistoryProvider;
 
 /**
@@ -95,11 +98,23 @@ public class FossilVcs extends AbstractVcs {
     //todo
   }
 
+  @Nullable
+  @Override
+  public DiffProvider getDiffProvider() {
+    return new FossilDiffProvider(this);
+  }
+
   public static FossilVcs getInstance(final Project project) {
     return (FossilVcs) ProjectLevelVcsManager.getInstance(project).findVcsByName(NAME);
   }
 
   public static VcsKey getVcsKey() {
     return ourKey;
+  }
+
+  @Nullable
+  @Override
+  public AnnotationProvider getAnnotationProvider() {
+    return new FossilAnnotationProvider(this);
   }
 }

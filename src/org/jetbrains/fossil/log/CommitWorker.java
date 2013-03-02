@@ -1,6 +1,7 @@
 package org.jetbrains.fossil.log;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vcs.FilePathImpl;
 import com.intellij.openapi.vcs.VcsException;
 import org.jetbrains.fossil.FossilException;
 import org.jetbrains.fossil.commandLine.FCommandName;
@@ -35,6 +36,13 @@ public class CommitWorker {
   public FossilRevisionNumber getRevisionNumber(final File file, final String revNum) throws VcsException {
     final ArtifactInfo artifactInfo = getArtifactInfo(revNum, file);
     return new FossilRevisionNumber(revNum, artifactInfo.getDate());
+  }
+
+  public FossilFileRevision getBaseFileRevision(final File file) throws VcsException {
+    final String baseRevision = getBaseRevision(file);
+    final ArtifactInfo artifactInfo = getArtifactInfo(baseRevision, file);
+    return new FossilFileRevision(myProject, new FilePathImpl(file, false), new FossilRevisionNumber(baseRevision, artifactInfo.getDate()),
+        artifactInfo.getUser(), artifactInfo.getComment());
   }
 
   public String getBaseRevision(final File file) throws VcsException {
@@ -74,6 +82,9 @@ public class CommitWorker {
     }
     final ArtifactInfo artifactInfo = new ArtifactInfo();
     artifactInfo.setHash(hash);
+    final String comment = map.get('C');
+    if (comment == null) throw new FossilException("Cannot find comment in artifact output: " + result);
+    artifactInfo.setComment(comment);
     final String u = map.get('U');
     if (u == null) throw new FossilException("Cannot find user name in artifact output: " + result);
     artifactInfo.setUser(u);

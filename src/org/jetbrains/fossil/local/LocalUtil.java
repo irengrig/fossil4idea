@@ -16,6 +16,7 @@ import org.jetbrains.fossil.checkin.AddUtil;
 import org.jetbrains.fossil.commandLine.FCommandName;
 import org.jetbrains.fossil.commandLine.FossilLineCommand;
 import org.jetbrains.fossil.commandLine.FossilSimpleCommand;
+import org.jetbrains.fossil.log.CommitWorker;
 import org.jetbrains.fossil.repository.FossilContentRevision;
 import org.jetbrains.fossil.repository.FossilRevisionNumber;
 
@@ -115,15 +116,20 @@ public class LocalUtil {
     myLocalTypes.put("DELETED", FileStatus.DELETED);
   }
 
-  public static Change createChange(final Project project, final File file, final FileStatus changeTypeEnum) {
+  public static Change createChange(final Project project, final File file, final FileStatus changeTypeEnum) throws FossilException {
     return new Change(createBefore(project, file, changeTypeEnum), createAfter(file, changeTypeEnum));
   }
 
-  private static ContentRevision createBefore(final Project project, final File file, final FileStatus changeTypeEnum) {
+  private static ContentRevision createBefore(final Project project, final File file, final FileStatus changeTypeEnum) throws FossilException {
     if (FileStatus.ADDED.equals(changeTypeEnum)) {
       return null;
     }
-    return new FossilContentRevision(project, createFilePath(file), new FossilRevisionNumber("HEAD", null));
+    try {
+      return new FossilContentRevision(project, createFilePath(file), new CommitWorker(project).getBaseRevisionNumber(file));
+    } catch (VcsException e) {
+      if (e instanceof FossilException) throw (FossilException) e;
+      throw new FossilException(e);
+    }
   }
 
   private static ContentRevision createAfter(final File file, final FileStatus changeTypeEnum) {

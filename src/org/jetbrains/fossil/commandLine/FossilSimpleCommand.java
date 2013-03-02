@@ -9,6 +9,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.fossil.FossilVcs;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -19,12 +21,26 @@ import java.io.File;
 public class FossilSimpleCommand extends FossilTextCommand {
   private final StringBuilder myStderr;
   private final StringBuilder myStdout;
+  private final Set<String> myStartBreakSequence;
 
   public FossilSimpleCommand(Project project, File workingDirectory, @NotNull FCommandName commandName) {
+    this(project, workingDirectory, commandName, null);
+  }
+
+  public FossilSimpleCommand(Project project, File workingDirectory, @NotNull FCommandName commandName,
+                             final String breakSequence) {
     super(project, workingDirectory, commandName);
 
     myStderr = new StringBuilder();
     myStdout = new StringBuilder();
+    myStartBreakSequence = new HashSet<String>();
+    if (breakSequence != null) {
+      myStartBreakSequence.add(breakSequence);
+    }
+  }
+
+  public void addBreakSequence(final String s) {
+    myStartBreakSequence.add(s);
   }
 
   @Override
@@ -35,10 +51,25 @@ public class FossilSimpleCommand extends FossilTextCommand {
   @Override
   protected void onTextAvailable(String text, Key outputType) {
     if (ProcessOutputTypes.STDOUT.equals(outputType)) {
+      if (myStdout.length() == 0 && isInBreakSequence(text)) {
+        destroyProcess();
+        return;
+      }
       myStdout.append(text);
     } else if (ProcessOutputTypes.STDERR.equals(outputType)) {
+      if (myStderr.length() == 0 && isInBreakSequence(text)) {
+        destroyProcess();
+        return;
+      }
       myStderr.append(text);
     }
+  }
+
+  private boolean isInBreakSequence(final String text) {
+    for (String s : myStartBreakSequence) {
+      if (text.contains(s)) return true;
+    }
+    return false;
   }
 
   public StringBuilder getStderr() {
