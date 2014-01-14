@@ -96,7 +96,7 @@ public class FossilSimpleCommand extends FossilTextCommand {
               msg = getStdout().toString();
             }
             if (msg.length() == 0) {
-              msg = "Svn process exited with error code: " + exitCode;
+              msg = "Fossil process exited with error code: " + exitCode;
             }
             ex[0] = new VcsException(msg);
           }
