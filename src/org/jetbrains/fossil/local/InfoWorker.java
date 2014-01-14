@@ -82,12 +82,12 @@ public class InfoWorker {
         info.setLocalPath(s);
       }
     });
-    fillLine(map, "user-home", new Consumer<String>() {
+    /*fillLine(map, "user-home", new Consumer<String>() {
       @Override
       public void consume(final String s) {
         info.setUserHome(s);
       }
-    });
+    });*/
     fillLine(map, "project-code", new Consumer<String>() {
       @Override
       public void consume(final String s) {
