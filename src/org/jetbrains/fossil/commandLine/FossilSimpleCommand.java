@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vcs.ProcessEventListener;
 import com.intellij.openapi.vcs.VcsException;
+import freemarker.log.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.fossil.FossilVcs;
 
@@ -19,6 +20,7 @@ import java.util.Set;
  * Time: 8:34 PM
  */
 public class FossilSimpleCommand extends FossilTextCommand {
+  private static final Logger LOG = Logger.getLogger("#FossilSimpleCommand");
   private final StringBuilder myStderr;
   private final StringBuilder myStdout;
   private final Set<String> myStartBreakSequence;
@@ -37,6 +39,14 @@ public class FossilSimpleCommand extends FossilTextCommand {
     if (breakSequence != null) {
       myStartBreakSequence.add(breakSequence);
     }
+    addUsualSequences();
+  }
+
+  private void addUsualSequences() {
+    myStartBreakSequence.add("If you have recently updated your fossil executable, you might\n" +
+            "need to run \"fossil all rebuild\" to bring the repository\n" +
+            "schemas up to date.");
+    myStartBreakSequence.add("database is locked");
   }
 
   public void addBreakSequence(final String s) {
@@ -52,12 +62,14 @@ public class FossilSimpleCommand extends FossilTextCommand {
   protected void onTextAvailable(String text, Key outputType) {
     if (ProcessOutputTypes.STDOUT.equals(outputType)) {
       if (myStdout.length() == 0 && isInBreakSequence(text)) {
+        myStdout.append(text);
         destroyProcess();
         return;
       }
       myStdout.append(text);
     } else if (ProcessOutputTypes.STDERR.equals(outputType)) {
       if (myStderr.length() == 0 && isInBreakSequence(text)) {
+        myStderr.append(text);
         destroyProcess();
         return;
       }
@@ -89,6 +101,8 @@ public class FossilSimpleCommand extends FossilTextCommand {
         try {
           if (exitCode == 0) {
             result[0] = getStdout().toString();
+            LOG.info(myCommandLine.getCommandLineString() + " >>\n" + result[0]);
+            System.out.println(myCommandLine.getCommandLineString() + " >>\n" + result[0]);
           }
           else {
             String msg = getStderr().toString();
@@ -98,6 +112,8 @@ public class FossilSimpleCommand extends FossilTextCommand {
             if (msg.length() == 0) {
               msg = "Fossil process exited with error code: " + exitCode;
             }
+            LOG.info(myCommandLine.getCommandLineString() + " >>\n" + msg);
+            System.out.println(myCommandLine.getCommandLineString() + " >>\n" + msg);
             ex[0] = new VcsException(msg);
           }
         }
