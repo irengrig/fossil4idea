@@ -22,7 +22,8 @@ import java.util.List;
  * Time: 2:59 PM
  */
 public class CheckinUtil {
-  public static final String BREAK_SEQUENCE = "contains CR/NL line endings; commit anyhow (yes/no/all)?";
+  public static final String QUESTION = "Commit anyhow (a=all/c=convert/y/N)?";
+  public static final String BREAK_SEQUENCE = "contains CR/NL line endings";
   private final Project myProject;
 
   public CheckinUtil(final Project project) {
@@ -38,12 +39,13 @@ public class CheckinUtil {
       String result = null;
       for (int i = 0; i < 2; i++) {
         final FossilSimpleCommand command = new FossilSimpleCommand(myProject, parent, FCommandName.commit, BREAK_SEQUENCE);
+        command.addBreakSequence("fossil knows nothing about");
         command.addParameters("-m", StringUtil.escapeStringCharacters(comment));
         for (File file : files) {
           command.addParameters(file.getPath());
         }
         result = command.run();
-        if (result.contains(BREAK_SEQUENCE)) {
+        if (result.contains(QUESTION) && result.contains(BREAK_SEQUENCE)) {
           final int ok[] = new int[1];
           UIUtil.invokeAndWaitIfNeeded(new Runnable() {
             @Override
