@@ -26,6 +26,8 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.ui.UIUtil;
 import junit.framework.Assert;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.fossil.FossilConfigurable;
+import org.jetbrains.fossil.FossilConfiguration;
 import org.jetbrains.fossil.FossilException;
 import org.jetbrains.fossil.FossilVcs;
 import org.jetbrains.fossil.init.CreateUtil;
@@ -66,29 +68,37 @@ public class BaseFossilTest {
       @Override
       public void run() {
         try {
-        final String key = "idea.load.plugins.id";
-        System.setProperty(key, "fossil4idea");
-        final IdeaTestFixtureFactory fixtureFactory = IdeaTestFixtureFactory.getFixtureFactory();
-        myTempDirTestFixture = fixtureFactory.createTempDirTestFixture();
-        myTempDirTestFixture.setUp();
+          final String key = "idea.load.plugins.id";
+          System.setProperty(key, "fossil4idea");
+          final IdeaTestFixtureFactory fixtureFactory = IdeaTestFixtureFactory.getFixtureFactory();
+          myTempDirTestFixture = fixtureFactory.createTempDirTestFixture();
+          myTempDirTestFixture.setUp();
 
-        final String tempDirPath = myTempDirTestFixture.getTempDirPath();
-        new File(tempDirPath).mkdirs();
-        String name = getClass().getName() + "." + new TestName().getMethodName();
+          final String tempDirPath = myTempDirTestFixture.getTempDirPath();
+          new File(tempDirPath).mkdirs();
+          String name = getClass().getName() + "." + new TestName().getMethodName();
 
-        final TestFixtureBuilder<IdeaProjectTestFixture> testFixtureBuilder = IdeaTestFixtureFactory.getFixtureFactory().
-            createFixtureBuilder(name);
-        myProjectFixture = testFixtureBuilder.getFixture();
-        final ModuleFixtureBuilder builder = testFixtureBuilder.
-            addModule(EmptyModuleFixtureBuilder.class).addContentRoot(tempDirPath);
-        myProjectFixture.setUp();
-        myProject = myProjectFixture.getProject();
-        //builder.addContentRoot(myProject.getBasePath());
+          final TestFixtureBuilder<IdeaProjectTestFixture> testFixtureBuilder = IdeaTestFixtureFactory.getFixtureFactory().
+                  createFixtureBuilder(name);
+          myProjectFixture = testFixtureBuilder.getFixture();
+          final ModuleFixtureBuilder builder = testFixtureBuilder.
+                  addModule(EmptyModuleFixtureBuilder.class).addContentRoot(tempDirPath);
+          myProjectFixture.setUp();
+          myProject = myProjectFixture.getProject();
+          //builder.addContentRoot(myProject.getBasePath());
 
-        myLocalFileSystem = LocalFileSystem.getInstance();
-        createRepositoryTreeInside(tempDirPath);
+          myLocalFileSystem = LocalFileSystem.getInstance();
+
+          setCorrectFossilPath();
+          createRepositoryTreeInside(tempDirPath);
         } catch (Exception e) {
           throw new RuntimeException(e);
+        }
+      }
+
+      private void setCorrectFossilPath() {
+        if (new File(".\\util\\fossil.exe").exists()) {
+          FossilConfiguration.getInstance(myProject).FOSSIL_PATH = new File(".\\util\\fossil.exe").getAbsolutePath();
         }
       }
     });
