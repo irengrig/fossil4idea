@@ -107,10 +107,10 @@ public class BaseFossilTest {
   }
 
   private void createRepositoryTreeInside(final String tempDirPath) throws VcsException, IOException {
-    myBase = new File(tempDirPath);
+    myBase = FileUtil.createTempDirectory(new File(tempDirPath), "foss_co", "");
     myBaseVf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(myBase);
     Assert.assertNotNull(myBaseVf);
-    final File repo = FileUtil.createTempDirectory(myBase, "repo", "");
+    final File repo = FileUtil.createTempDirectory(new File(tempDirPath), "foss_repo", "");
     final File repoFile = new File(repo, "test.fossil");
     final CreateUtil createUtil = new CreateUtil(myProject, repoFile.getPath());
     createUtil.createRepository();
