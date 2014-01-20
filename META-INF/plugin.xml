@@ -34,7 +34,7 @@
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <projectService serviceImplementation="org.jetbrains.fossil.FossilConfiguration"/>
-    <vcs id="fossil" displayName="Fossil" vcsClass="org.jetbrains.fossil.FossilVcs" name="fossil"/>
+    <projectService serviceImplementation="org.github.irengrig.fossil4idea.FossilConfiguration"/>
+    <vcs id="fossil" displayName="Fossil" vcsClass="org.github.irengrig.fossil4idea.FossilVcs" name="fossil"/>
   </extensions>
 </idea-plugin>
