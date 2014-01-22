@@ -1,11 +1,11 @@
 package org.github.irengrig.fossil4idea.commandLine;
 
 import com.intellij.execution.process.ProcessOutputTypes;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vcs.ProcessEventListener;
 import com.intellij.openapi.vcs.VcsException;
-import freemarker.log.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.github.irengrig.fossil4idea.FossilVcs;
 
@@ -20,7 +20,7 @@ import java.util.Set;
  * Time: 8:34 PM
  */
 public class FossilSimpleCommand extends FossilTextCommand {
-  private static final Logger LOG = Logger.getLogger("#FossilSimpleCommand");
+  private static final Logger LOG = Logger.getInstance("#FossilSimpleCommand");
   private final StringBuilder myStderr;
   private final StringBuilder myStdout;
   private final Set<String> myStartBreakSequence;
