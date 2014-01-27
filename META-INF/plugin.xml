@@ -35,6 +35,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="org.github.irengrig.fossil4idea.FossilConfiguration"/>
+    <checkoutProvider implementation="org.github.irengrig.fossil4idea.checkout.FossilCheckoutProvider"/>
     <vcs id="fossil" displayName="Fossil" vcsClass="org.github.irengrig.fossil4idea.FossilVcs" name="fossil"/>
   </extensions>
 </idea-plugin>
