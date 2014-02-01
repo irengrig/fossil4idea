@@ -14,12 +14,13 @@ import org.jetbrains.annotations.Nullable;
  */
 @State(
     name = "FossilConfiguration",
+    roamingType = RoamingType.DISABLED,
     storages = {
         @Storage(file = StoragePathMacros.WORKSPACE_FILE)
     }
 )
 public class FossilConfiguration implements PersistentStateComponent<Element> {
-  public String FOSSIL_PATH;
+  public String FOSSIL_PATH = "";
 
   @Nullable
   public Element getState() {

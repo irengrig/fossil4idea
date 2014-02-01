@@ -30,13 +30,6 @@ public class CheckinUtil {
     myProject = project;
   }
 
-  public void cloneRepo(final String url, final String localPath) throws VcsException {
-    final File file = new File(localPath);
-    final FossilSimpleCommand command = new FossilSimpleCommand(myProject, file.getParentFile(), FCommandName.clone);
-    command.addParameters(url, localPath);
-    final String result = command.run();
-  }
-
   /**
    * @return list of committed revisions hashes
    */

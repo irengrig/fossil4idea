@@ -31,6 +31,13 @@
   </project-components>
 
   <actions>
+      <group id="FossilFilePopupGroup" popup="true" class="org.github.irengrig.fossil4idea.actions.FossilGroup" text="Fossil">
+          <action class="org.github.irengrig.fossil4idea.actions.CloneAction" id="clone" text="Clone Fossil Repository"></action>
+          <action class="org.github.irengrig.fossil4idea.actions.OpenAction" id="open" text="Open Fossil Repository"></action>
+          <add-to-group group-id="VcsGroup" anchor="last"/>
+          <add-to-group group-id="VcsGlobalGroup" anchor="after" relative-to-action="Vcs.Specific"/>
+      </group>
+
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
