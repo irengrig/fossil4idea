@@ -5,14 +5,15 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vcs.FilePath;
-import com.intellij.openapi.vcs.update.SequentialUpdatesContext;
-import com.intellij.openapi.vcs.update.UpdateEnvironment;
-import com.intellij.openapi.vcs.update.UpdateSession;
-import com.intellij.openapi.vcs.update.UpdatedFiles;
+import com.intellij.openapi.vcs.VcsException;
+import com.intellij.openapi.vcs.update.*;
+import org.github.irengrig.fossil4idea.commandLine.FCommandName;
+import org.github.irengrig.fossil4idea.commandLine.FossilSimpleCommand;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+import java.io.File;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,7 +22,10 @@ import java.util.Collection;
  * Time: 11:55 PM
  */
 public class FossilUpdateEnvironment implements UpdateEnvironment {
+  private final FossilVcs myFossilVcs;
+
   public FossilUpdateEnvironment(final FossilVcs fossilVcs) {
+    myFossilVcs = fossilVcs;
   }
 
   @Override
@@ -31,18 +35,96 @@ public class FossilUpdateEnvironment implements UpdateEnvironment {
 
   @NotNull
   @Override
-  public UpdateSession updateDirectories(@NotNull final FilePath[] contentRoots, final UpdatedFiles updatedFiles, final ProgressIndicator progressIndicator, @NotNull final Ref<SequentialUpdatesContext> context) throws ProcessCanceledException {
-    return null;  //To change body of implemented methods use File | Settings | File Templates.
+  public UpdateSession updateDirectories(@NotNull final FilePath[] contentRoots, final UpdatedFiles updatedFiles,
+      final ProgressIndicator progressIndicator, @NotNull final Ref<SequentialUpdatesContext> context) throws ProcessCanceledException {
+    final List<VcsException> exceptions = new ArrayList<VcsException>();
+    for (FilePath contentRoot : contentRoots) {
+      progressIndicator.checkCanceled();
+      try {
+        final FossilSimpleCommand pull = new FossilSimpleCommand(myFossilVcs.getProject(), contentRoot.getIOFile(), FCommandName.pull);
+        final String pullResult = pull.run();
+        /*Round-trips: 2   Artifacts sent: 0  received: 2
+Pull finished with 611 bytes sent, 925 bytes received*/
+        final FossilSimpleCommand update = new FossilSimpleCommand(myFossilVcs.getProject(), contentRoot.getIOFile(), FCommandName.update);
+//        update.addParameters("--debug");
+//        update.addParameters("--verbose");
+        final String out = update.run();
+        parseUpdateOut(out, updatedFiles, contentRoot.getIOFile());
+      } catch (VcsException e) {
+        exceptions.add(e);
+      }
+    }
+    final MyUpdateSession session = new MyUpdateSession(exceptions, progressIndicator.isCanceled());
+    return session;
   }
+
+  private final static Map<String, String> ourGroupsMapping = new HashMap<String, String>();
+  static {
+    ourGroupsMapping.put("ADD", FileGroup.CREATED_ID);
+    ourGroupsMapping.put("UPDATE", FileGroup.MODIFIED_ID);
+    ourGroupsMapping.put("REMOVE", FileGroup.REMOVED_FROM_REPOSITORY_ID);
+  }
+
+  private void parseUpdateOut(String out, UpdatedFiles updatedFiles, File ioFile) {
+    final String[] split = out.split("\n");
+    for (String s : split) {
+      final int idx = s.indexOf(' ');
+      if (idx > 0 && idx < (s.length() - 1)) {
+        final String groupId = ourGroupsMapping.get(s.substring(0, idx));
+        if (groupId != null) {
+          final String relative = s.substring(idx).trim();
+          final File file = new File(ioFile, relative);
+          updatedFiles.getGroupById(groupId).add(file.getPath(), FossilVcs.getVcsKey(), null);
+        }
+      }
+    }
+  }
+
+  /*without verbose
+  *
+  * Autosync:  file://C:/Users/Irina.Chernushina/AppData/Local/Temp/unitTest660293821993339991.tmp/foss_repo8538480276176483493/test.fossil
+Round-trips: 1   Artifacts sent: 0  received: 0
+Pull finished with 267 bytes sent, 387 bytes received
+ADD 1.txt
+ADD a with space.txt
+UPDATE edit.txt
+REMOVE was.txt
+-------------------------------------------------------------------------------
+updated-to:   5f0db352bcb910a6d27b762ad83feaedf5127418 2014-02-13 09:24:35 UTC
+tags:         trunk
+comment:      2*** (user: Irina.Chernushina)
+changes:      4 files modified.
+ "fossil undo" is available to undo changes to the working checkout.*/
+      /*                Bytes      Cards  Artifacts     Deltas
+Sent:             130          1          0          0
+Received:         262          6          0          0
+Pull finished with 267 bytes sent, 390 bytes received
+ADD 1.txt
+ADD a with space.txt
+UPDATE edit.txt
+REMOVE was.txt
+-------------------------------------------------------------------------------
+updated-to:   855feeba12a34bb1876ae4890a9213780c84c6cb 2014-02-13 08:20:43 UTC
+tags:         trunk
+comment:      2*** (user: Irina.Chernushina)
+changes:      4 files modified.
+ "fossil undo" is available to undo changes to the working checkout.*/
+
 
   @Nullable
   @Override
   public Configurable createConfigurable(final Collection<FilePath> files) {
-    return null;  //To change body of implemented methods use File | Settings | File Templates.
+    return null;
   }
 
   @Override
   public boolean validateOptions(final Collection<FilePath> roots) {
-    return false;  //To change body of implemented methods use File | Settings | File Templates.
+    return true;
+  }
+
+  private static class MyUpdateSession extends UpdateSessionAdapter {
+    public MyUpdateSession(List<VcsException> exceptions, boolean isCanceled) {
+      super(exceptions, isCanceled);
+    }
   }
 }

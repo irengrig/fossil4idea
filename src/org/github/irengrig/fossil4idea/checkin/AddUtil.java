@@ -82,7 +82,7 @@ public class AddUtil {
 
   public static File tryFindCommonParent(final Project project, final List<File> files) {
     if (files.isEmpty()) return null;
-    if (files.size() == 1) return files.get(0).getParentFile();
+    //if (files.size() == 1) return files.get(0).getParentFile();
 
     final List<File> other = files.subList(1, files.size());
     final VirtualFile[] rootsUnderVcs = ProjectLevelVcsManager.getInstance(project).getRootsUnderVcs(FossilVcs.getInstance(project));

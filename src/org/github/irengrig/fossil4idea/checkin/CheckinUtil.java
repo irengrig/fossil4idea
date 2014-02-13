@@ -2,6 +2,7 @@ package org.github.irengrig.fossil4idea.checkin;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vcs.VcsException;
 import com.intellij.util.ui.UIUtil;
@@ -42,7 +43,8 @@ public class CheckinUtil {
         command.addBreakSequence("fossil knows nothing about");
         command.addParameters("-m", StringUtil.escapeStringCharacters(comment));
         for (File file : files) {
-          command.addParameters(file.getPath());
+          final String relative = FileUtil.getRelativePath(parent, file);
+          command.addParameters(relative);
         }
         result = command.run();
         if (result.contains(QUESTION) && result.contains(BREAK_SEQUENCE)) {

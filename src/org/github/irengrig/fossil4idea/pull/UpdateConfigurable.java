@@ -46,6 +46,7 @@ public class UpdateConfigurable implements Configurable {
 
   @Override
   public void apply() throws ConfigurationException {
+   // --private
     //To change body of implemented methods use File | Settings | File Templates.
   }
 

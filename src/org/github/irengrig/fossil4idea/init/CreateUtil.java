@@ -82,7 +82,7 @@ public class CreateUtil {
     myPassword = userPswd.substring(quot1 + 1 , quot2);
   }
 
-  public void openRepoTo(final File where, final File repo) throws VcsException {
+  public static void openRepoTo(final Project project, final File where, final File repo) throws VcsException {
     if (where.exists() && ! where.isDirectory()) {
       throw new FossilException("Can not checkout to " + where.getPath() + ". File already exists.");
     }
@@ -92,14 +92,10 @@ public class CreateUtil {
     if (! where.exists()) {
       where.mkdirs();
     }
-    final FossilSimpleCommand command = new FossilSimpleCommand(myProject, where, FCommandName.open);
+    final FossilSimpleCommand command = new FossilSimpleCommand(project, where, FCommandName.open);
     //command.addParameters("--latest");
     command.addParameters(repo.getPath());
-    try {
     final String result = command.run();
-    } catch (VcsException e) {
-      e.printStackTrace();
-    }
   }
 
   public String getUserName() {
