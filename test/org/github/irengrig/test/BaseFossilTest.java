@@ -20,6 +20,7 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TempDirTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.util.PlatformUtilsCore;
 import com.intellij.util.ui.UIUtil;
 import junit.framework.Assert;
 import org.jetbrains.annotations.Nullable;
@@ -64,6 +65,7 @@ public class BaseFossilTest {
       public void run() {
         try {
           final String key = "idea.load.plugins.id";
+          System.setProperty(PlatformUtilsCore.PLATFORM_PREFIX_KEY, PlatformUtilsCore.COMMUNITY_PREFIX);
           System.setProperty(key, "fossil4idea");
           final IdeaTestFixtureFactory fixtureFactory = IdeaTestFixtureFactory.getFixtureFactory();
           myTempDirTestFixture = fixtureFactory.createTempDirTestFixture();
@@ -109,7 +111,7 @@ public class BaseFossilTest {
     final File repoFile = new File(repo, "test.fossil");
     final CreateUtil createUtil = new CreateUtil(myProject, repoFile.getPath());
     createUtil.createRepository();
-    createUtil.openRepoTo(myBase, repoFile);
+    createUtil.openRepoTo(myProject, myBase, repoFile);
     final String projectId = createUtil.getProjectId();
     Assert.assertNotNull(projectId);
 
