@@ -80,4 +80,47 @@ public class FossilUpdateTest extends BaseTwoRootedFossilTest {
     final UpdateSession updateSession = FossilVcs.getInstance(myProject1).getUpdateEnvironment().updateDirectories(new FilePath[]{new FilePathImpl(myAnotherVf)}, UpdatedFiles.create(),
             new EmptyProgressIndicator(), new Ref<SequentialUpdatesContext>());
   }
+
+  @Test
+  public void testTextConflict() throws Exception {
+    setStandardConfirmation(VcsConfiguration.StandardConfirmation.ADD, VcsShowConfirmationOption.Value.DO_ACTION_SILENTLY);
+    setStandardConfirmation(VcsConfiguration.StandardConfirmation.REMOVE, VcsShowConfirmationOption.Value.DO_ACTION_SILENTLY);
+    final VirtualFile fileD = createFileInCommand("was.txt", "111");
+    final VirtualFile fileE = createFileInCommand("edit.txt", "111");
+
+    myDirtyScopeManager.markEverythingDirty();
+    myChangeListManager.ensureUpToDate(false);
+    final Collection<Change> allChanges = myChangeListManager.getAllChanges();
+
+    final List<VcsException> commit = myVcs.getCheckinEnvironment().commit(new ArrayList<Change>(allChanges), "***");
+    Assert.assertTrue(commit == null || commit.isEmpty());
+    assertNoLocalChanges();
+
+    cloneAnotherRepo();
+
+    final VirtualFile file = createFileInCommand("a with space.txt", "111");
+    final VirtualFile file1 = createFileInCommand("1.txt", "111");
+    editFileInCommand(myProject, fileE, "222");
+    deleteFileInCommand(myProject, fileD);
+
+    final File fileE1 = new File(myAnother, "edit.txt");
+    final VirtualFile fileE1Vf = myLocalFileSystem.refreshAndFindFileByIoFile(fileE1);
+    editFileInCommand(myProject1, fileE1Vf, "333");
+
+    sleep(100);
+    myDirtyScopeManager.markEverythingDirty();
+    myChangeListManager.ensureUpToDate(false);
+    final Change change = myChangeListManager.getChange(file);
+    Assert.assertNotNull(change);
+    Assert.assertTrue(FileStatus.ADDED.equals(change.getFileStatus()));
+
+    final Collection<Change> allChanges1 = myChangeListManager.getAllChanges();
+
+    final List<VcsException> commit1 = myVcs.getCheckinEnvironment().commit(new ArrayList<Change>(allChanges1), "2***");
+    Assert.assertTrue(commit1 == null || commit1.isEmpty());
+    assertNoLocalChanges();
+
+    final UpdateSession updateSession = FossilVcs.getInstance(myProject1).getUpdateEnvironment().updateDirectories(new FilePath[]{new FilePathImpl(myAnotherVf)}, UpdatedFiles.create(),
+            new EmptyProgressIndicator(), new Ref<SequentialUpdatesContext>());
+  }
 }
