@@ -26,6 +26,7 @@ public class CheckinUtil {
   public static final String QUESTION = "Commit anyhow (a=all/c=convert/y/N)?";
   public static final String BREAK_SEQUENCE = "contains CR/NL line endings";
   private final Project myProject;
+  public static final String PREFIX = "New_Version: ";
 
   public CheckinUtil(final Project project) {
     myProject = project;
@@ -82,10 +83,11 @@ public class CheckinUtil {
   private String parseHash(String result) throws FossilException {
     if (result == null) throw new FossilException("Can not parse 'commit' result: null");
     result = result.trim();
-    final String prefix = "New_Version: ";
-    if (! result.startsWith(prefix)) {
-      throw new FossilException("Can not parse 'commit' result: " + result);
+    final String[] split = result.split("\n");
+    for (int i = 0; i < split.length; i++) {
+      final String s = split[i];
+      if (s.startsWith(PREFIX)) return s.substring(PREFIX.length()).trim();
     }
-    return result.substring(prefix.length()).trim();
+    throw new FossilException("Can not parse 'commit' result: " + result);
   }
 }
