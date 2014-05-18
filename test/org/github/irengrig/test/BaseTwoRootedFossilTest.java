@@ -169,7 +169,7 @@ public class BaseTwoRootedFossilTest {
             myProjectFixture1.tearDown();
             myTempDirTestFixture1.tearDown();
           }
-        } catch (Exception e) {
+        } catch (Throwable e) {
           //throw new RuntimeException(e);
         }
       }
