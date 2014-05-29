@@ -1,6 +1,7 @@
 package org.github.irengrig.test;
 
 import com.intellij.ide.startup.impl.StartupManagerImpl;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
@@ -65,7 +66,10 @@ public class BaseFossilTest {
       public void run() {
         try {
           final String key = "idea.load.plugins.id";
-          System.setProperty(PlatformUtilsCore.PLATFORM_PREFIX_KEY, PlatformUtilsCore.COMMUNITY_PREFIX);
+          //System.setProperty(PlatformUtilsCore.PLATFORM_PREFIX_KEY, PlatformUtilsCore.COMMUNITY_PREFIX);
+          String homePath = System.getProperty(PathManager.PROPERTY_HOME_PATH);
+//          final String homePath = PathManager.getHomePath();
+          new File(homePath, "test").mkdirs();
           System.setProperty(key, "fossil4idea");
           final IdeaTestFixtureFactory fixtureFactory = IdeaTestFixtureFactory.getFixtureFactory();
           myTempDirTestFixture = fixtureFactory.createTempDirTestFixture();
