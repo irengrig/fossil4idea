@@ -6,6 +6,10 @@ import org.jdom.Attribute;
 import org.jdom.Element;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Irina.Chernushina
@@ -21,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 )
 public class FossilConfiguration implements PersistentStateComponent<Element> {
   public String FOSSIL_PATH = "";
+  private final Map<File, String> myRemoteUrls = new HashMap<File, String>();
 
   @Nullable
   public Element getState() {
@@ -38,5 +43,13 @@ public class FossilConfiguration implements PersistentStateComponent<Element> {
 
   public static FossilConfiguration getInstance(final Project project) {
     return ServiceManager.getService(project, FossilConfiguration.class);
+  }
+
+  public void setRemoteUrls(final Map<File, String> urls) {
+    myRemoteUrls.putAll(urls);
+  }
+
+  public Map<File, String> getRemoteUrls() {
+    return myRemoteUrls;
   }
 }

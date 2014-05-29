@@ -1,14 +1,15 @@
 package org.github.irengrig.fossil4idea;
 
 import com.intellij.openapi.options.Configurable;
-import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.*;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vcs.FilePath;
 import com.intellij.openapi.vcs.VcsException;
 import com.intellij.openapi.vcs.update.*;
 import org.github.irengrig.fossil4idea.commandLine.FCommandName;
 import org.github.irengrig.fossil4idea.commandLine.FossilSimpleCommand;
+import org.github.irengrig.fossil4idea.pull.FossilUpdateConfigurable;
+import org.github.irengrig.fossil4idea.util.RootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,10 +39,18 @@ public class FossilUpdateEnvironment implements UpdateEnvironment {
   public UpdateSession updateDirectories(@NotNull final FilePath[] contentRoots, final UpdatedFiles updatedFiles,
       final ProgressIndicator progressIndicator, @NotNull final Ref<SequentialUpdatesContext> context) throws ProcessCanceledException {
     final List<VcsException> exceptions = new ArrayList<VcsException>();
+    final FossilConfiguration configuration = FossilConfiguration.getInstance(myFossilVcs.getProject());
+    final Map<File, String> remoteUrls = configuration.getRemoteUrls();
+
     for (FilePath contentRoot : contentRoots) {
       progressIndicator.checkCanceled();
+      final String remoteUrl = remoteUrls.get(contentRoot.getIOFile());
+
       try {
         final FossilSimpleCommand pull = new FossilSimpleCommand(myFossilVcs.getProject(), contentRoot.getIOFile(), FCommandName.pull);
+        if (remoteUrl != null && remoteUrl.length() > 0) {
+          pull.addParameters(remoteUrl);
+        }
         final String pullResult = pull.run();
         /*Round-trips: 2   Artifacts sent: 0  received: 2
 Pull finished with 611 bytes sent, 925 bytes received*/
@@ -114,7 +123,25 @@ changes:      4 files modified.
   @Nullable
   @Override
   public Configurable createConfigurable(final Collection<FilePath> files) {
-    return null;
+    final Map<File, String> checkoutURLs = new HashMap<File, String>(FossilConfiguration.getInstance(myFossilVcs.getProject()).getRemoteUrls());
+
+    final StringBuilder warnings = new StringBuilder();
+    ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
+      @Override
+      public void run() {
+        for (FilePath root : files) {
+          try {
+            final String remoteUrl = RootUtil.getRemoteUrl(myFossilVcs.getProject(), root.getIOFile());
+            if (remoteUrl != null) {
+              checkoutURLs.put(root.getIOFile(), remoteUrl);
+            }
+          } catch (VcsException e) {
+            warnings.append(e.getMessage()).append('\n');
+          }
+        }
+      }
+    }, "Getting remote URLs", true, myFossilVcs.getProject());
+    return new FossilUpdateConfigurable(myFossilVcs.getProject(), files, checkoutURLs, warnings.toString());
   }
 
   @Override

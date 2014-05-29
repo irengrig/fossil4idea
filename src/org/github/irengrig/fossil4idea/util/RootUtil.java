@@ -2,14 +2,19 @@ package org.github.irengrig.fossil4idea.util;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vcs.ProjectLevelVcsManager;
+import com.intellij.openapi.vcs.VcsException;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Processor;
+import org.github.irengrig.fossil4idea.commandLine.FCommandName;
+import org.github.irengrig.fossil4idea.commandLine.FossilSimpleCommand;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -36,5 +41,14 @@ public class RootUtil {
           });
     }
     return result;
+  }
+
+  @Nullable
+  public static String getRemoteUrl(final Project project, File root) throws VcsException {
+    final File working = root.isDirectory() ? root : root.getParentFile();
+    final FossilSimpleCommand command = new FossilSimpleCommand(project, working, FCommandName.remote_url);
+    final String text = command.run().trim();
+    if ("off".equals(text)) return null;
+    return text;
   }
 }
