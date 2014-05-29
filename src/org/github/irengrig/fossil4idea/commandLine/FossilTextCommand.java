@@ -4,8 +4,10 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessListener;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.profile.ProfileManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -27,7 +29,15 @@ public abstract class FossilTextCommand extends FossilCommand {
   @Override
   protected void waitForProcess() {
     if (myHandler != null) {
-      myHandler.waitFor();
+      while (true) {
+        if(myHandler.waitFor(200)) break;
+        final ProgressManager pm = ProgressManager.getInstance();
+        if (pm.hasProgressIndicator()) {
+          if (pm.getProgressIndicator().isCanceled()) {
+            destroyProcess();
+          }
+        }
+      }
     }
   }
 
