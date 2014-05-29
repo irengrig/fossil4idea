@@ -1,15 +1,18 @@
 package org.github.irengrig.fossil4idea.pull;
 
+import com.google.common.base.Strings;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MultiLineLabelUI;
 import com.intellij.openapi.vcs.FilePath;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.UIUtil;
 import org.github.irengrig.fossil4idea.FossilConfiguration;
+import org.github.irengrig.fossil4idea.util.TextUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,6 +22,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 /**
  * Created with IntelliJ IDEA.
@@ -119,9 +123,9 @@ public class FossilUpdateConfigurable implements Configurable {
       c.gridx = 0;
       c.gridwidth = 2;
       c.fill = GridBagConstraints.HORIZONTAL;
-      final JBLabel label = new JBLabel("Warning: " + myWarning);
+      final JLabel label = new JLabel(new TextUtil().insertLineCuts("Warning: " + myWarning));
       label.setUI(new MultiLineLabelUI());
-      label.setFontColor(UIUtil.FontColor.BRIGHTER);
+      label.setForeground(SimpleTextAttributes.ERROR_ATTRIBUTES.getFgColor());
       panel.add(label, c);
     }
   }
