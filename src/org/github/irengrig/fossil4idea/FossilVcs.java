@@ -17,6 +17,7 @@ import org.github.irengrig.fossil4idea.checkin.FossilCheckinEnvironment;
 import org.github.irengrig.fossil4idea.local.FossilChangeProvider;
 import org.github.irengrig.fossil4idea.local.FossilVfsListener;
 import org.github.irengrig.fossil4idea.log.FossilHistoryProvider;
+import org.github.irengrig.fossil4idea.ui.UiManager;
 import org.jetbrains.annotations.Nullable;
 import org.github.irengrig.fossil4idea.local.FossilRollbackEnvironment;
 import org.github.irengrig.fossil4idea.log.FossilAnnotationProvider;
@@ -33,6 +34,7 @@ public class FossilVcs extends AbstractVcs {
   private FossilChangeProvider myChangeProvider;
   private static final VcsKey ourKey = createKey(NAME);
   private FossilVfsListener myVfsListener;
+  private UiManager uiManager;
 
   public FossilVcs(Project project) {
     super(project, NAME);
@@ -51,6 +53,7 @@ public class FossilVcs extends AbstractVcs {
   @Override
   protected void activate() {
     myVfsListener = new FossilVfsListener(myProject);
+    uiManager = new UiManager(myProject);
   }
 
   @Override
@@ -58,7 +61,12 @@ public class FossilVcs extends AbstractVcs {
     if (myVfsListener != null) {
       Disposer.dispose(myVfsListener);
       myVfsListener = null;
+      uiManager.stop();
     }
+  }
+
+  public UiManager getUiManager() {
+    return uiManager;
   }
 
   @Nullable
