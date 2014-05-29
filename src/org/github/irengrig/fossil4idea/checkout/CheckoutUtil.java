@@ -32,4 +32,17 @@ public class CheckoutUtil {
     }
     command.run();
   }
+
+  public void initRepository(final File repo) throws VcsException {
+    final File parentFile = repo.getParentFile();
+    if (parentFile.exists() && ! parentFile.isDirectory()) {
+      throw new VcsException("Can not create Fossil repository, " + parentFile.getPath() + " is not a directory.");
+    }
+    if (! parentFile.exists() && ! parentFile.mkdirs()) {
+      throw new VcsException("Can not create Fossil repository, can not create parent directory: " + parentFile.getPath());
+    }
+    final FossilSimpleCommand command = new FossilSimpleCommand(myProject, parentFile, FCommandName.init);
+    command.addParameters(repo.getName());
+    command.run();
+  }
 }

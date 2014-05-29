@@ -32,12 +32,15 @@
 
   <actions>
       <group id="FossilFilePopupGroup" popup="true" class="org.github.irengrig.fossil4idea.actions.FossilGroup" text="Fossil">
-          <action class="org.github.irengrig.fossil4idea.actions.CloneAction" id="clone" text="Clone Fossil Repository"></action>
-          <action class="org.github.irengrig.fossil4idea.actions.OpenAction" id="open" text="Open Fossil Repository"></action>
+          <action class="org.github.irengrig.fossil4idea.actions.CloneAction" id="Fossil.Clone" text="Clone Fossil Repository..."></action>
+          <action class="org.github.irengrig.fossil4idea.actions.OpenAction" id="Fossil.Open" text="Open Fossil Repository..."></action>
           <add-to-group group-id="VcsGroup" anchor="last"/>
           <add-to-group group-id="VcsGlobalGroup" anchor="after" relative-to-action="Vcs.Specific"/>
       </group>
 
+      <action id="Fossil.Init" class="org.github.irengrig.fossil4idea.actions.InitAction" text="Create Fossil Repository...">
+          <add-to-group group-id="Vcs.Import"/>
+      </action>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
