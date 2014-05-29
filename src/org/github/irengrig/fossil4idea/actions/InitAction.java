@@ -30,7 +30,7 @@ public class InitAction extends com.intellij.openapi.actionSystem.AnAction {
             "Select file where to create new Fossil repository."), project);
     final VirtualFileWrapper wrapper = dialog.save(null, null);
     if (wrapper == null) return;
-    final Task.Backgroundable task = new Task.Backgroundable(project, "Open Fossil Repository", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+    final Task.Backgroundable task = new Task.Backgroundable(project, "Init Fossil Repository", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
       @Override
       public void run(@NotNull ProgressIndicator progressIndicator) {
         try {
