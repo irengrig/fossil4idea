@@ -24,6 +24,7 @@ public class FossilSimpleCommand extends FossilTextCommand {
   private final StringBuilder myStderr;
   private final StringBuilder myStdout;
   private final Set<String> myStartBreakSequence;
+  private final Set<String> mySkipErrors;
 
   public FossilSimpleCommand(Project project, File workingDirectory, @NotNull FCommandName commandName) {
     this(project, workingDirectory, commandName, null);
@@ -39,6 +40,7 @@ public class FossilSimpleCommand extends FossilTextCommand {
     if (breakSequence != null) {
       myStartBreakSequence.add(breakSequence);
     }
+    mySkipErrors = new HashSet<String>();
     addUsualSequences();
   }
 
@@ -53,6 +55,10 @@ public class FossilSimpleCommand extends FossilTextCommand {
     myStartBreakSequence.add(s);
   }
 
+  public void addSkipError(final String s) {
+    mySkipErrors.add(s);
+  }
+
   @Override
   protected void processTerminated(int exitCode) {
     //
@@ -61,7 +67,7 @@ public class FossilSimpleCommand extends FossilTextCommand {
   @Override
   protected void onTextAvailable(String text, Key outputType) {
     if (ProcessOutputTypes.STDOUT.equals(outputType)) {
-      if (myStdout.length() == 0 && isInBreakSequence(text)) {
+      if (isInBreakSequence(text)) {
         myStdout.append(text);
         destroyProcess();
         return;
@@ -99,7 +105,7 @@ public class FossilSimpleCommand extends FossilTextCommand {
       @Override
       public void processTerminated(int exitCode) {
         try {
-          if (exitCode == 0) {
+          if (exitCode == 0 || skipError(getStderr().toString())) {
             result[0] = getStdout().toString();
             LOG.info(myCommandLine.getCommandLineString() + " >>\n" + result[0]);
             System.out.println(myCommandLine.getCommandLineString() + " >>\n" + result[0]);
@@ -120,6 +126,14 @@ public class FossilSimpleCommand extends FossilTextCommand {
         catch (Throwable t) {
           ex[0] = new VcsException(t.toString(), t);
         }
+      }
+
+      private boolean skipError(String s) {
+        if (s == null || s.isEmpty()) return false;
+        for (String error : mySkipErrors) {
+          if (s.contains(error)) return true;
+        }
+        return false;
       }
 
       @Override

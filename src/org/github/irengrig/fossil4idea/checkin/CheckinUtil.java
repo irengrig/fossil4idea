@@ -42,6 +42,8 @@ public class CheckinUtil {
       for (int i = 0; i < 2; i++) {
         final FossilSimpleCommand command = new FossilSimpleCommand(myProject, parent, FCommandName.commit, BREAK_SEQUENCE);
         command.addBreakSequence("fossil knows nothing about");
+        command.addBreakSequence(QUESTION);
+        command.addSkipError("Abandoning commit due to CR/NL line endings");
         command.addParameters("-m", StringUtil.escapeStringCharacters(comment));
         for (File file : files) {
           final String relative = FileUtil.getRelativePath(parent, file);
@@ -60,7 +62,7 @@ public class CheckinUtil {
           });
           if (ok[0] == Messages.OK) {
             final FossilSimpleCommand settingsCommand = new FossilSimpleCommand(myProject, parent, FCommandName.settings);
-            settingsCommand.addParameters("crnl-glob", "*");
+            settingsCommand.addParameters("crnl-glob", "'*'");
             settingsCommand.run();
             continue;
           }
