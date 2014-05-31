@@ -8,6 +8,7 @@ import com.intellij.openapi.vcs.actions.VcsContextFactory;
 import com.intellij.openapi.vcs.changes.*;
 import com.intellij.openapi.vcs.rollback.RollbackProgressListener;
 import com.intellij.util.Consumer;
+import com.yourkit.util.FileUtil;
 import org.github.irengrig.fossil4idea.checkin.AddUtil;
 import org.github.irengrig.fossil4idea.commandLine.FCommandName;
 import org.github.irengrig.fossil4idea.commandLine.FossilLineCommand;
@@ -16,11 +17,11 @@ import org.github.irengrig.fossil4idea.log.CommitWorker;
 import org.github.irengrig.fossil4idea.repository.FossilContentRevision;
 import org.github.irengrig.fossil4idea.FossilException;
 import org.github.irengrig.fossil4idea.FossilVcs;
+import org.github.irengrig.fossil4idea.repository.FossilRevisionNumber;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -30,15 +31,56 @@ import java.util.Map;
  */
 public class LocalUtil {
   public static void reportChanges(final Project project, final File directory,
-                                   final ChangelistBuilder clb) throws FossilException {
-    final FossilLineCommand command = new FossilLineCommand(project, directory, FCommandName.changes);
+                                   final ChangelistBuilder clb) throws VcsException {
+    final LineParser lineParser = new LineParser(project, clb, directory);
     final StringBuilder err = new StringBuilder();
+    askChanges(project, directory, lineParser, err);
+    if (lineParser.hasSomethingForDiff()) {
+      askDiff(project, directory, lineParser, err);
+      final List<Change> changes = lineParser.getDiffedChanges();
+      for (Change change : changes) {
+        clb.processChange(change, FossilVcs.getVcsKey());
+      }
+    }
+    if (err.length() > 0) {
+      throw new FossilException(err.toString());
+    }
+  }
+
+  private static void askDiff(Project project, File directory, final LineParser lineParser, final StringBuilder err) {
+    final FossilLineCommand command = new FossilLineCommand(project, directory, FCommandName.diff);
+    command.startAndWait(new LineProcessEventListener() {
+      @Override
+      public void onLineAvailable(String s, Key key) {
+        if (ProcessOutputTypes.STDOUT.equals(key)) {
+          try {
+            lineParser.parseDiffLine(s);
+          } catch (FossilException e) {
+            err.append(e.getMessage());
+          }
+        } else if (ProcessOutputTypes.STDERR.equals(key)) {
+          err.append(s).append('\n');
+        }
+      }
+
+      @Override
+      public void processTerminated(int i) {
+      }
+
+      @Override
+      public void startFailed(Throwable throwable) {
+      }
+    });
+  }
+
+  private static void askChanges(Project project, File directory, final LineParser lineParser, final StringBuilder err) {
+    final FossilLineCommand command = new FossilLineCommand(project, directory, FCommandName.changes);
     command.startAndWait(new LineProcessEventListener() {
       @Override
       public void onLineAvailable(final String s, final Key key) {
         if (ProcessOutputTypes.STDOUT.equals(key)) {
           try {
-            parseChangesLine(project, directory, s, clb);
+            lineParser.parseChangesLine(s);
           } catch (FossilException e) {
             err.append(e.getMessage());
           }
@@ -55,9 +97,6 @@ public class LocalUtil {
       public void startFailed(final Throwable throwable) {
       }
     });
-    if (err.length() > 0) {
-      throw new FossilException(err.toString());
-    }
   }
 
   public static void reportUnversioned(final Project project, final File directory, final Consumer<File> consumer) throws FossilException {
@@ -88,36 +127,139 @@ public class LocalUtil {
     }
   }
 
-  private static void parseChangesLine(final Project project, final File base, final String s, final ChangelistBuilder clb) throws FossilException {
-    final String line = s.trim();
-    final int spaceIdx = line.indexOf(' ');
-    if (spaceIdx == -1) throw new FossilException("Can not parse status line: '" + s + "'");
-    final String typeName = line.substring(0, spaceIdx);
-    final FileStatus type = myLocalTypes.get(typeName);
-    final File file = new File(base, line.substring(spaceIdx).trim());
-    if (type != null) {
-      clb.processChange(createChange(project, file, type), FossilVcs.getVcsKey());
-    } else if ("MISSING".equals(typeName)) {
-      clb.processLocallyDeletedFile(VcsContextFactory.SERVICE.getInstance().createFilePathOnDeleted(file, false));
-    } else if ("RENAMED".equals(typeName)) {
-      clb.processChange(new RenamedChange(createAfter(file, FileStatus.MODIFIED)), FossilVcs.getVcsKey());
-    } else {
-      throw new FossilException("Can not parse status line: '" + s + "'");
+  private static class LineParser {
+    public static final String INDEX = "Index: ";
+    private final Project myProject;
+    private final ChangelistBuilder myClb;
+    private final File myBase;
+    // for diff
+    private final Set<String> myPathsForDiff;
+    private boolean myInsideDiff;
+    private int myLastDiffHeaderLine;
+    private final Map<String, StringBuilder> myPatches;
+    private String myPreviousPatchName;
+    private String myCurrentFile;
+    private StringBuilder myBuff;
+
+    public LineParser(Project myProject, ChangelistBuilder myClb, File myBase) {
+      this.myProject = myProject;
+      this.myClb = myClb;
+      this.myBase = myBase;
+      myPathsForDiff = new HashSet<String>();
+      myPatches = new HashMap<String, StringBuilder>();
+      myBuff = new StringBuilder();
+    }
+
+    public void parseChangesLine(final String s) throws FossilException {
+      final String line = s.trim();
+      final int spaceIdx = line.indexOf(' ');
+      if (spaceIdx == -1) throw new FossilException("Can not parse status line: '" + s + "'");
+      final String typeName = line.substring(0, spaceIdx);
+      final FileStatus type = ourOneSideTypes.get(typeName);
+      final File file = new File(myBase, line.substring(spaceIdx).trim());
+      if (type != null) {
+        try {
+          myClb.processChange(createChange(myProject, file, type), FossilVcs.getVcsKey());
+        } catch (IOException e) {
+          throw new FossilException(e);
+        }
+        return;
+      }
+      if ("MISSING".equals(typeName)) {
+        myClb.processLocallyDeletedFile(VcsContextFactory.SERVICE.getInstance().createFilePathOnDeleted(file, false));
+      }
+      if (ourWithDiffTypes.contains(typeName)) {
+        myPathsForDiff.add(s);
+      }
+      // suppress for now
+//      throw new FossilException("Can not parse status line: '" + s + "'");
+    }
+
+    public boolean hasSomethingForDiff() {
+      return ! myPathsForDiff.isEmpty();
+    }
+
+    public void parseDiffLine(String s) throws FossilException {
+      if (myInsideDiff && myLastDiffHeaderLine >= 0) {
+        boolean isNext = false;
+        if (myLastDiffHeaderLine == 0) {
+          isNext = s.startsWith("==================");
+        } else if (myLastDiffHeaderLine == 1) {
+          isNext = s.startsWith("--- ") && s.length() > 4;
+        } else if (myLastDiffHeaderLine == 2) {
+          isNext = s.startsWith("+++ ") && s.length() > 4;
+        }
+        if (isNext) {
+          myBuff.append(s).append("\n");
+          ++ myLastDiffHeaderLine;
+          if (myLastDiffHeaderLine == 3) {
+            // end of header
+            myLastDiffHeaderLine = -1;
+            myPatches.get(myCurrentFile).append(myBuff);
+            myBuff.setLength(0);
+          }
+        } else {
+          // it all was just part of previous patch!
+          if (myPreviousPatchName == null || myPatches.get(myPreviousPatchName) == null) throw new FossilException("Can not parse patch - no header");
+          final StringBuilder stringBuilder = myPatches.get(myPreviousPatchName);
+          stringBuilder.append(myBuff);
+          myBuff.setLength(0);
+          myLastDiffHeaderLine = -1;
+        }
+        return;
+      }
+      if (s.startsWith(INDEX)) {
+        myInsideDiff = true;
+        myLastDiffHeaderLine = 0;
+        myPreviousPatchName = myCurrentFile;
+        myCurrentFile = s.substring(INDEX.length()).trim();
+        final StringBuilder sb = new StringBuilder();
+        myPatches.put(myCurrentFile, sb);
+        sb.append(s);
+        return;
+      }
+      if (s.startsWith("ADDED") || s.startsWith("DELETED")) {
+        // skip;
+        myInsideDiff = false;
+        myLastDiffHeaderLine = -1;
+        return;
+      }
+      if (myInsideDiff) {
+        myPatches.get(myCurrentFile).append(s).append("\n");
+      }
+      // what is it if...?
+    }
+
+    public List<Change> getDiffedChanges() throws VcsException {
+      final List<Change> result = new ArrayList<Change>();
+      for (Map.Entry<String, StringBuilder> e : myPatches.entrySet()) {
+        final File file = new File(myBase, e.getKey().trim());
+        final ContentRevision after = createAfter(file, FileStatus.MODIFIED);
+        final String newContent = new DiffUtil().execute(after.getContent(), e.getValue().toString(), file.getName());
+        final ContentRevision before = new SimpleContentRevision(newContent, new FilePathImpl(file, false), "Local");
+        result.add(new Change(before, after));
+      }
+      return result;
     }
   }
 
-  private static final Map<String, FileStatus> myLocalTypes = new HashMap<String, FileStatus>(7);
+  private static final Set<String> ourWithDiffTypes = new HashSet<String>();
   static {
-    myLocalTypes.put("EDITED", FileStatus.MODIFIED);
-    myLocalTypes.put("ADDED", FileStatus.ADDED);
-    myLocalTypes.put("DELETED", FileStatus.DELETED);
+    ourWithDiffTypes.add("EDITED");
+    ourWithDiffTypes.add("RENAMED");
   }
 
-  public static Change createChange(final Project project, final File file, final FileStatus changeTypeEnum) throws FossilException {
+  private static final Map<String, FileStatus> ourOneSideTypes = new HashMap<String, FileStatus>(7);
+  static {
+    ourOneSideTypes.put("ADDED", FileStatus.ADDED);
+    ourOneSideTypes.put("DELETED", FileStatus.DELETED);
+  }
+
+  public static Change createChange(final Project project, final File file, final FileStatus changeTypeEnum) throws FossilException, IOException {
     return new Change(createBefore(project, file, changeTypeEnum), createAfter(file, changeTypeEnum));
   }
 
-  private static ContentRevision createBefore(final Project project, final File file, final FileStatus changeTypeEnum) throws FossilException {
+  private static ContentRevision createBefore(final Project project, final File file, final FileStatus changeTypeEnum) throws FossilException, IOException {
     if (FileStatus.ADDED.equals(changeTypeEnum)) {
       return null;
     }

@@ -10,10 +10,12 @@ import com.intellij.openapi.vcs.changes.*;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Consumer;
+import org.github.irengrig.fossil4idea.FossilException;
 import org.github.irengrig.fossil4idea.FossilVcs;
 import org.github.irengrig.fossil4idea.util.FilterDescendantIoFiles;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -65,7 +67,11 @@ public class FossilChangeProvider implements ChangeProvider {
       final VirtualFile file = instance.getFile(document);
       if (file != null) {
         if (FileStatus.NOT_CHANGED.equals(changeListManagerGate.getStatus(file))) {
-          changelistBuilder.processChange(LocalUtil.createChange(myProject, new File(file.getPath()), FileStatus.MODIFIED), FossilVcs.getVcsKey());
+          try {
+            changelistBuilder.processChange(LocalUtil.createChange(myProject, new File(file.getPath()), FileStatus.MODIFIED), FossilVcs.getVcsKey());
+          } catch (IOException e) {
+            throw new FossilException(e);
+          }
         }
       }
     }
