@@ -1,6 +1,11 @@
 package org.github.irengrig.fossil4idea.checkin;
 
+import com.intellij.notification.Notifications;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.ui.MessageType;
@@ -46,10 +51,13 @@ public class CheckinUtil {
     myProject = project;
   }
 
-  public void push() throws FossilException {
+  public void push() {
     final FossilVcs fossil = FossilVcs.getInstance(myProject);
     final VirtualFile[] roots = ProjectLevelVcsManager.getInstance(myProject).getRootsUnderVcs(fossil);
-    if (roots.length == 0) throw new FossilException("No roots under Fossil found.");
+    if (roots.length == 0) {
+//      PopupUtil.showBalloonForActiveComponent("Error occurred while pushing: No roots under Fossil found.", MessageType.ERROR);
+      return;
+    }
 
     UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
@@ -68,9 +76,24 @@ public class CheckinUtil {
           public void run() {
             builder.getWindow().setVisible(false);
             try {
-              final String result = pushImpl();
-              PopupUtil.showBalloonForActiveComponent(result, MessageType.INFO);
-            } catch (VcsException e) {
+              configurable.apply();
+              final ProgressIndicator pi = ProgressManager.getInstance().getProgressIndicator();
+              if (pi != null) {
+                pi.setText("Pushing...");
+              }
+              ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+                @Override
+                public void run() {
+                  try {
+                    final String s = pushImpl();
+                    PopupUtil.showBalloonForActiveComponent(s, MessageType.INFO);
+                  } catch (VcsException e) {
+                    // todo as notification
+                    PopupUtil.showBalloonForActiveComponent("Error occurred while pushing: " + e.getMessage(), MessageType.ERROR);
+                  }
+                }
+              });
+            } catch (ConfigurationException e) {
               PopupUtil.showBalloonForActiveComponent("Error occurred while pushing: " + e.getMessage(), MessageType.ERROR);
             }
           }
@@ -92,7 +115,9 @@ public class CheckinUtil {
 
     for (VirtualFile root : roots) {
       final File file = new File(root.getPath());
-      final String s = pushOneRoot(file, remoteUrls.get(file));
+      final String remote = remoteUrls.get(file);
+      String s = pushOneRoot(file, remote);
+      s = s.isEmpty() && remote != null ? "Pushed to " + remote : s;
       if (! s.isEmpty()) {
         if (sb.length() > 0) sb.append("\n");
         sb.append(s);
@@ -109,6 +134,9 @@ public class CheckinUtil {
     final String run = command.run();
     final String[] split = run.split("\n");
     for (String s : split) {
+      if (s.startsWith("Error: ")) {
+        throw new FossilException(s);
+      }
       if (s.startsWith(PUSH_TO)) {
         return s.substring(PUSH_TO.length());
       }
@@ -128,6 +156,7 @@ public class CheckinUtil {
         final FossilSimpleCommand command = new FossilSimpleCommand(myProject, parent, FCommandName.commit, BREAK_SEQUENCE);
         command.addBreakSequence("fossil knows nothing about");
         command.addBreakSequence(QUESTION);
+        command.addBreakSequence("Autosync failed");
         command.addSkipError("Abandoning commit due to CR/NL line endings");
         command.addParameters("-m", StringUtil.escapeStringCharacters(comment));
         for (File file : files) {

@@ -38,6 +38,7 @@
           <action class="org.github.irengrig.fossil4idea.actions.RunUIAction" id="Fossil.UI" text="Run Web UI"></action>
           <action class="org.github.irengrig.fossil4idea.actions.CloneAction" id="Fossil.Clone" text="Clone Repository..."></action>
           <action class="org.github.irengrig.fossil4idea.actions.OpenAction" id="Fossil.Open" text="Open Repository..."></action>
+          <action class="org.github.irengrig.fossil4idea.actions.PushAction" id="Fossil.Push" text="Push..."></action>
           <add-to-group group-id="VcsGroup" anchor="last"/>
           <add-to-group group-id="VcsGlobalGroup" anchor="after" relative-to-action="Vcs.Specific"/>
       </group>
