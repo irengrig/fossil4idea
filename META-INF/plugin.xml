@@ -2,9 +2,24 @@
   <id>fossil4idea</id>
   <name>Fossil Integration</name>
   <version>0.1</version>
-  <vendor email="Irina.Chernushina@jetbrains.com">Irina Chernushina</vendor>
+  <vendor url="https://github.com/irengrig/fossil4idea" email="Irina.Chernushina@jetbrains.com">Irina Chernushina</vendor>
   <description><![CDATA[
       Allows working with <a href='http://www.fossil-scm.org/'>Fossil</a> - open-source distributed version control.
+
+      Supported features:
+      <ul>
+      <li>local changes</li>
+      <li>commit/push</li>
+      <li>update (pull + checkout)</li>
+      <li>file history</li>
+      <li>file annotation</li>
+      <li>show diff</li>
+      <li>run web UI</li>
+      <li>checkout (clone + open)</li>
+      <li>clone repository</li>
+      <li>open repository</li>
+      <li>create repository</li>
+      </ul>
 
   ]]></description>
   <!-- <description><![CDATA[
