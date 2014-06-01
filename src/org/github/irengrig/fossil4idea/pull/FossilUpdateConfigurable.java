@@ -78,6 +78,7 @@ public class FossilUpdateConfigurable implements Configurable {
     comp.setFont(comp.getFont().deriveFont(Font.BOLD));
     panel.add(comp, c);
     final JBTextField value = new JBTextField();
+    value.setColumns(100);
     final String preset = myCheckoutURLs.get(root.getIOFile());
     if (preset != null) {
       value.setText(preset);
