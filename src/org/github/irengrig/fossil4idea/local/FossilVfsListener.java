@@ -3,8 +3,10 @@ package org.github.irengrig.fossil4idea.local;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vcs.*;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.Convertor;
+import com.intellij.vcsUtil.VcsFileUtil;
 import org.github.irengrig.fossil4idea.FossilVcs;
 import org.github.irengrig.fossil4idea.checkin.AddUtil;
 
@@ -49,6 +51,7 @@ public class FossilVfsListener extends VcsVFSListener {
           return new File(o.getPath());
         }
       }));
+      VcsFileUtil.markFilesDirty(myProject, addedFiles);
     } catch (VcsException e) {
       myExceptions.add(e);
     }
@@ -73,6 +76,7 @@ public class FossilVfsListener extends VcsVFSListener {
   protected void performDeletion(final List<FilePath> filesToDelete) {
     try {
       AddUtil.deleteImpl(myProject, ObjectsConvertor.convert(filesToDelete, ObjectsConvertor.FILEPATH_FILE));
+      VcsFileUtil.markFilesDirty(myProject, filesToDelete);
     } catch (VcsException e) {
       myExceptions.add(e);
     }
