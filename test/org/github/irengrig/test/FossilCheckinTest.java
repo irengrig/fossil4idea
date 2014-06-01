@@ -82,6 +82,7 @@ public class FossilCheckinTest extends BaseFossilTest {
     final File parent = new File(file.getParent().getPath());
     final String newName = "newName.txt";
     renameFileInCommand(myProject, file, newName);
+    editFileInCommand(myProject, file, "23244444444444444");
     Assert.assertTrue(file != null && file.isValid() && newName.equals(file.getName()));
 
     myDirtyScopeManager.markEverythingDirty();
@@ -89,7 +90,7 @@ public class FossilCheckinTest extends BaseFossilTest {
     final Change changeRenamed = myChangeListManager.getChange(file);
     Assert.assertNotNull(changeRenamed);
     Assert.assertTrue(FileStatus.MODIFIED.equals(changeRenamed.getFileStatus()));
-    Assert.assertTrue(changeRenamed.isMoved());
+//    Assert.assertTrue(changeRenamed.isMoved());
 
     final List<VcsException> commitRenamed = myVcs.getCheckinEnvironment().commit(Collections.singletonList(changeRenamed), "***");
     Assert.assertTrue(commitRenamed == null || commitRenamed.isEmpty());
@@ -114,6 +115,7 @@ public class FossilCheckinTest extends BaseFossilTest {
     final VirtualFile dir = createDirInCommand(myBaseVf, "dir");
     final File parent = new File(file.getParent().getPath());
     moveFileInCommand(myProject, file, dir);
+    editFileInCommand(myProject, file, "23244444444444444");
     Assert.assertTrue(file != null && file.isValid());
 
     myDirtyScopeManager.markEverythingDirty();
@@ -121,7 +123,7 @@ public class FossilCheckinTest extends BaseFossilTest {
     final Change changeRenamed = myChangeListManager.getChange(file);
     Assert.assertNotNull(changeRenamed);
     Assert.assertTrue(FileStatus.MODIFIED.equals(changeRenamed.getFileStatus()));
-    Assert.assertTrue(changeRenamed.isMoved());
+//    Assert.assertTrue(changeRenamed.isMoved());
 
     final List<VcsException> commitRenamed = myVcs.getCheckinEnvironment().commit(Collections.singletonList(changeRenamed), "***");
     Assert.assertTrue(commitRenamed == null || commitRenamed.isEmpty());
@@ -145,6 +147,7 @@ public class FossilCheckinTest extends BaseFossilTest {
     assertNoLocalChanges();
 
     renameFileInCommand(myProject, dir, "newName");
+    editFileInCommand(myProject, file, "23244444444444444");
     Assert.assertTrue(file != null && file.isValid());
 
     myDirtyScopeManager.markEverythingDirty();
@@ -152,7 +155,7 @@ public class FossilCheckinTest extends BaseFossilTest {
     final Change changeRenamed = myChangeListManager.getChange(file);
     Assert.assertNotNull(changeRenamed);
     Assert.assertTrue(FileStatus.MODIFIED.equals(changeRenamed.getFileStatus()));
-    Assert.assertTrue(changeRenamed.isMoved());
+//    Assert.assertTrue(changeRenamed.isMoved());
 
     final List<VcsException> commitRenamed = myVcs.getCheckinEnvironment().commit(Collections.singletonList(changeRenamed), "***");
     Assert.assertTrue(commitRenamed == null || commitRenamed.isEmpty());
