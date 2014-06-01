@@ -34,6 +34,8 @@ import java.util.Set;
  */
 public class FossilCheckinEnvironment implements CheckinEnvironment {
   private final FossilVcs myFossilVcs;
+  // don't like it, but because of platform design
+  private boolean myPush;
 
   public FossilCheckinEnvironment(final FossilVcs fossilVcs) {
     myFossilVcs = fossilVcs;
@@ -72,6 +74,8 @@ public class FossilCheckinEnvironment implements CheckinEnvironment {
   @Override
   public List<VcsException> commit(final List<Change> changes, final String preparedComment,
                                    @NotNull final NullableFunction<Object, Object> parametersHolder, final Set<String> feedback) {
+    final boolean wasToPush = myPush;
+    myPush = false;
     final CheckinUtil checkinUtil = new CheckinUtil(myFossilVcs.getProject());
     final List<File> files = ChangesUtil.getIoFilesFromChanges(changes);
     final List<VcsException> exceptions = new ArrayList<VcsException>();
@@ -83,6 +87,10 @@ public class FossilCheckinEnvironment implements CheckinEnvironment {
           PopupUtil.showBalloonForActiveComponent(createMessage(hashes), MessageType.INFO);
         } else {
           feedback.add(createMessage(hashes));
+        }
+        // something committed & need to push
+        if (wasToPush) {
+          checkinUtil.push();
         }
       }
     } catch (VcsException e) {
@@ -113,12 +121,12 @@ public class FossilCheckinEnvironment implements CheckinEnvironment {
     final List<VcsException> result = new ArrayList<VcsException>();
     try {
       AddUtil.scheduleForAddition(myFossilVcs.getProject(), ObjectsConvertor.convert(files,
-          new Convertor<VirtualFile, File>() {
-            @Override
-            public File convert(final VirtualFile o) {
-              return new File(o.getPath());
-            }
-          }));
+              new Convertor<VirtualFile, File>() {
+                @Override
+                public File convert(final VirtualFile o) {
+                  return new File(o.getPath());
+                }
+              }));
     } catch (VcsException e) {
       result.add(e);
     }
@@ -133,5 +141,9 @@ public class FossilCheckinEnvironment implements CheckinEnvironment {
   @Override
   public boolean isRefreshAfterCommitNeeded() {
     return false;
+  }
+
+  public void setPush() {
+    myPush = true;
   }
 }

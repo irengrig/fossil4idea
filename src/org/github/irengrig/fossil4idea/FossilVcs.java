@@ -8,6 +8,7 @@ import com.intellij.openapi.vcs.ProjectLevelVcsManager;
 import com.intellij.openapi.vcs.VcsKey;
 import com.intellij.openapi.vcs.annotate.AnnotationProvider;
 import com.intellij.openapi.vcs.changes.ChangeProvider;
+import com.intellij.openapi.vcs.changes.CommitExecutor;
 import com.intellij.openapi.vcs.checkin.CheckinEnvironment;
 import com.intellij.openapi.vcs.diff.DiffProvider;
 import com.intellij.openapi.vcs.history.VcsHistoryProvider;
@@ -22,6 +23,9 @@ import org.jetbrains.annotations.Nullable;
 import org.github.irengrig.fossil4idea.local.FossilRollbackEnvironment;
 import org.github.irengrig.fossil4idea.log.FossilAnnotationProvider;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Irina.Chernushina
@@ -35,6 +39,7 @@ public class FossilVcs extends AbstractVcs {
   private static final VcsKey ourKey = createKey(NAME);
   private FossilVfsListener myVfsListener;
   private UiManager uiManager;
+  private FossilCheckinEnvironment fossilCheckinEnvironment;
 
   public FossilVcs(Project project) {
     super(project, NAME);
@@ -81,7 +86,10 @@ public class FossilVcs extends AbstractVcs {
   @Nullable
   @Override
   protected CheckinEnvironment createCheckinEnvironment() {
-    return new FossilCheckinEnvironment(this);
+    if (fossilCheckinEnvironment == null) {
+      fossilCheckinEnvironment = new FossilCheckinEnvironment(this);
+    }
+    return fossilCheckinEnvironment;
   }
 
   @Nullable
@@ -100,6 +108,11 @@ public class FossilVcs extends AbstractVcs {
   @Override
   protected UpdateEnvironment createUpdateEnvironment() {
     return new FossilUpdateEnvironment(this);
+  }
+
+  @Override
+  public List<CommitExecutor> getCommitExecutors() {
+    return Collections.<CommitExecutor>singletonList(new FossilCommitAndPushExecutor(myProject));
   }
 
   public void checkVersion() {
