@@ -18,6 +18,7 @@ import org.github.irengrig.fossil4idea.repository.FossilContentRevision;
 import org.github.irengrig.fossil4idea.FossilException;
 import org.github.irengrig.fossil4idea.FossilVcs;
 import org.github.irengrig.fossil4idea.repository.FossilRevisionNumber;
+import org.github.irengrig.fossil4idea.util.RootUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -232,9 +233,11 @@ public class LocalUtil {
     }
 
     public List<Change> getDiffedChanges() throws VcsException {
+      File wcRoot = RootUtil.getWcRoot(myBase);
+      wcRoot = wcRoot == null ? myBase : wcRoot;
       final List<Change> result = new ArrayList<Change>();
       for (Map.Entry<String, StringBuilder> e : myPatches.entrySet()) {
-        final File file = new File(myBase, e.getKey().trim());
+        final File file = new File(wcRoot, e.getKey().trim());
         final ContentRevision after = createAfter(file, FileStatus.MODIFIED);
         final String newContent = new DiffUtil().execute(after.getContent(), e.getValue().toString(), file.getName());
         final ContentRevision before = new SimpleContentRevision(newContent, new FilePathImpl(file, false), "Local");

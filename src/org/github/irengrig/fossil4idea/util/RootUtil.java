@@ -3,6 +3,7 @@ package org.github.irengrig.fossil4idea.util;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vcs.ProjectLevelVcsManager;
 import com.intellij.openapi.vcs.VcsException;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Processor;
@@ -41,6 +42,21 @@ public class RootUtil {
           });
     }
     return result;
+  }
+
+  public static File getWcRoot(final File file) {
+    File current = file;
+    final LocalFileSystem lfs = LocalFileSystem.getInstance();
+    VirtualFile virtualFile = lfs.refreshAndFindFileByIoFile(current);
+    while (current != null) {
+      if (virtualFile != null) {
+        if (virtualFile.findChild(ourCheckoutFileName) != null) return new File(virtualFile.getPath());
+        virtualFile = virtualFile.getParent();
+      } else {
+        current = current.getParentFile();
+      }
+    }
+    return null;
   }
 
   @Nullable
