@@ -68,15 +68,31 @@ Pull finished with 611 bytes sent, 925 bytes received*/
   }
 
   private final static Map<String, String> ourGroupsMapping = new HashMap<String, String>();
+  private final static String MERGE_CONFLICTS2 = "merge conflicts in";
+  private final static String MERGE_CONFLICTS1 = "*****";
   static {
     ourGroupsMapping.put("ADD", FileGroup.CREATED_ID);
     ourGroupsMapping.put("UPDATE", FileGroup.MODIFIED_ID);
     ourGroupsMapping.put("REMOVE", FileGroup.REMOVED_FROM_REPOSITORY_ID);
+    ourGroupsMapping.put("MERGE", FileGroup.MERGED_ID);
+  }
+
+  private String extractMergePath(final String path) {
+    if (! path.startsWith(MERGE_CONFLICTS1)) return null;
+    final int idx = path.indexOf(MERGE_CONFLICTS2);
+    if (idx == -1) return null;
+    return path.substring(idx + MERGE_CONFLICTS2.length()).trim();
   }
 
   private void parseUpdateOut(String out, UpdatedFiles updatedFiles, File ioFile) {
     final String[] split = out.split("\n");
     for (String s : split) {
+      final String mergePath = extractMergePath(s);
+      if (mergePath != null) {
+        final File file = new File(ioFile, mergePath);
+        updatedFiles.getGroupById(FileGroup.MERGED_ID).remove(file.getPath());
+        updatedFiles.getGroupById(FileGroup.MERGED_WITH_CONFLICT_ID).add(file.getPath(), FossilVcs.getVcsKey(), null);
+      }
       final int idx = s.indexOf(' ');
       if (idx > 0 && idx < (s.length() - 1)) {
         final String groupId = ourGroupsMapping.get(s.substring(0, idx));
@@ -88,37 +104,6 @@ Pull finished with 611 bytes sent, 925 bytes received*/
       }
     }
   }
-
-  /*without verbose
-  *
-  * Autosync:  file://C:/Users/Irina.Chernushina/AppData/Local/Temp/unitTest660293821993339991.tmp/foss_repo8538480276176483493/test.fossil
-Round-trips: 1   Artifacts sent: 0  received: 0
-Pull finished with 267 bytes sent, 387 bytes received
-ADD 1.txt
-ADD a with space.txt
-UPDATE edit.txt
-REMOVE was.txt
--------------------------------------------------------------------------------
-updated-to:   5f0db352bcb910a6d27b762ad83feaedf5127418 2014-02-13 09:24:35 UTC
-tags:         trunk
-comment:      2*** (user: Irina.Chernushina)
-changes:      4 files modified.
- "fossil undo" is available to undo changes to the working checkout.*/
-      /*                Bytes      Cards  Artifacts     Deltas
-Sent:             130          1          0          0
-Received:         262          6          0          0
-Pull finished with 267 bytes sent, 390 bytes received
-ADD 1.txt
-ADD a with space.txt
-UPDATE edit.txt
-REMOVE was.txt
--------------------------------------------------------------------------------
-updated-to:   855feeba12a34bb1876ae4890a9213780c84c6cb 2014-02-13 08:20:43 UTC
-tags:         trunk
-comment:      2*** (user: Irina.Chernushina)
-changes:      4 files modified.
- "fossil undo" is available to undo changes to the working checkout.*/
-
 
   @Nullable
   @Override

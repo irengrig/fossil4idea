@@ -158,15 +158,16 @@ public class LocalUtil {
       final FileStatus type = ourOneSideTypes.get(typeName);
       final File file = new File(myBase, line.substring(spaceIdx).trim());
       if (type != null) {
-        try {
-          myClb.processChange(createChange(myProject, file, type), FossilVcs.getVcsKey());
-        } catch (IOException e) {
-          throw new FossilException(e);
-        }
+        myClb.processChange(createChange(myProject, file, type), FossilVcs.getVcsKey());
         return;
       }
       if ("MISSING".equals(typeName)) {
         myClb.processLocallyDeletedFile(VcsContextFactory.SERVICE.getInstance().createFilePathOnDeleted(file, false));
+        return;
+      }
+      if ("CONFLICT".equals(typeName)) {
+        myClb.processChange(createChange(myProject, file, FileStatus.MERGED_WITH_CONFLICTS), FossilVcs.getVcsKey());
+        return;
       }
       if (ourWithDiffTypes.contains(typeName)) {
         myPathsForDiff.add(s);
@@ -255,11 +256,11 @@ public class LocalUtil {
     ourOneSideTypes.put("DELETED", FileStatus.DELETED);
   }
 
-  public static Change createChange(final Project project, final File file, final FileStatus changeTypeEnum) throws FossilException, IOException {
+  public static Change createChange(final Project project, final File file, final FileStatus changeTypeEnum) throws FossilException {
     return new Change(createBefore(project, file, changeTypeEnum), createAfter(file, changeTypeEnum));
   }
 
-  private static ContentRevision createBefore(final Project project, final File file, final FileStatus changeTypeEnum) throws FossilException, IOException {
+  private static ContentRevision createBefore(final Project project, final File file, final FileStatus changeTypeEnum) throws FossilException {
     if (FileStatus.ADDED.equals(changeTypeEnum)) {
       return null;
     }
