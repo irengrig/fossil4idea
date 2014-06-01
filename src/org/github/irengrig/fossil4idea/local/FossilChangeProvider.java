@@ -66,7 +66,8 @@ public class FossilChangeProvider implements ChangeProvider {
     for (Document document : documents) {
       final VirtualFile file = instance.getFile(document);
       if (file != null) {
-        if (FileStatus.NOT_CHANGED.equals(changeListManagerGate.getStatus(file))) {
+        final FileStatus status = changeListManagerGate.getStatus(file);
+        if (status == null || FileStatus.NOT_CHANGED.equals(status)) {
           try {
             changelistBuilder.processChange(LocalUtil.createChange(myProject, new File(file.getPath()), FileStatus.MODIFIED), FossilVcs.getVcsKey());
           } catch (IOException e) {
