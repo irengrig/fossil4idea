@@ -138,16 +138,19 @@ public class FossilUpdateConfigurable implements Configurable {
 
   @Override
   public void apply() throws ConfigurationException {
-    final Map<File, String> urls = new HashMap<File, String>();
+    FossilConfiguration configuration = FossilConfiguration.getInstance(myProject);
+
+    final Map<File, String> urls = new HashMap<File, String>(configuration.getRemoteUrls());
     for (Map.Entry<File, JBTextField> entry : myFields.entrySet()) {
       final String text = entry.getValue().getText();
-      if (text != null && text.trim().length() > 0) {
+      if (text.trim().equals(myCheckoutURLs.get(entry.getKey())) || text.trim().length() == 0) {
+        // remove override from map
+        urls.remove(entry.getKey());
+      } else {
         urls.put(entry.getKey(), text.trim());
       }
     }
-    if (! urls.isEmpty()) {
-      FossilConfiguration.getInstance(myProject).setRemoteUrls(urls);
-    }
+    configuration.setRemoteUrls(urls);
   }
 
   @Override
