@@ -8,7 +8,6 @@ import com.intellij.openapi.vcs.actions.VcsContextFactory;
 import com.intellij.openapi.vcs.changes.*;
 import com.intellij.openapi.vcs.rollback.RollbackProgressListener;
 import com.intellij.util.Consumer;
-import com.yourkit.util.FileUtil;
 import org.github.irengrig.fossil4idea.checkin.AddUtil;
 import org.github.irengrig.fossil4idea.commandLine.FCommandName;
 import org.github.irengrig.fossil4idea.commandLine.FossilLineCommand;
