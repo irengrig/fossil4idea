@@ -96,14 +96,14 @@ public class FossilSimpleCommand extends FossilTextCommand {
     }
   }
 
-  // just stream flush didn't helped to interact with process - commenting out for the time
+  // we use --no-warnings instead
   /*private boolean tryToInteractivelyCommunicate(final String s) {
     if (s == null || s.isEmpty()) return false;
     for (String error : myAnswerYesLines) {
       if (s.contains(error) || s.toLowerCase().contains(error.toLowerCase())) {
         final OutputStream outputStream = myProcess.getOutputStream();
         try {
-          outputStream.write("y".getBytes());
+          outputStream.write("y\n".getBytes());
           outputStream.flush();
         } catch (IOException e) {
           throw new RuntimeException(e);
