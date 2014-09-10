@@ -75,9 +75,9 @@ public class FossilSimpleCommand extends FossilTextCommand {
 
   @Override
   protected void onTextAvailable(String text, Key outputType) {
-    /*if (tryToInteractivelyCommunicate(text)) {
+    if (tryToInteractivelyCommunicate(text)) {
       return;
-    }*/
+    }
 
     if (ProcessOutputTypes.STDOUT.equals(outputType)) {
       if (isInBreakSequence(text)) {
@@ -97,7 +97,7 @@ public class FossilSimpleCommand extends FossilTextCommand {
   }
 
   // we use --no-warnings instead
-  /*private boolean tryToInteractivelyCommunicate(final String s) {
+  private boolean tryToInteractivelyCommunicate(final String s) {
     if (s == null || s.isEmpty()) return false;
     for (String error : myAnswerYesLines) {
       if (s.contains(error) || s.toLowerCase().contains(error.toLowerCase())) {
@@ -112,7 +112,7 @@ public class FossilSimpleCommand extends FossilTextCommand {
       }
     }
     return false;
-  }*/
+  }
 
   private boolean isInBreakSequence(final String text) {
     for (String s : myStartBreakSequence) {
