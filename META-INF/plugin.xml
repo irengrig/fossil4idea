@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>fossil4idea</id>
   <name>Fossil Integration</name>
-  <version>0.1.4</version>
+  <version>0.1.5</version>
   <vendor url="https://github.com/irengrig/fossil4idea" email="Irina.Chernushina@jetbrains.com">Irina Chernushina</vendor>
   <description><![CDATA[
       Allows working with <a href='http://www.fossil-scm.org/'>Fossil</a> - open-source distributed version control.
@@ -34,7 +34,7 @@
   </change-notes>       -->
 
   <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Build+Number+Ranges for description -->
-  <idea-version since-build="123.0"/>
+  <idea-version since-build="137.0"/>
 
   <depends>com.intellij.modules.platform</depends>
   <depends>com.intellij.modules.vcs</depends>
