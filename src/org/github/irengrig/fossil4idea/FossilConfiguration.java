@@ -46,6 +46,7 @@ public class FossilConfiguration implements PersistentStateComponent<Element> {
   }
 
   public void setRemoteUrls(final Map<File, String> urls) {
+    myRemoteUrls.clear();
     myRemoteUrls.putAll(urls);
   }
 

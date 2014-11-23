@@ -74,7 +74,8 @@ public class CloneAndOpenAction extends AnAction {
 
   private static void notifyListenerIfNeeded(final File target, final CheckoutProvider.Listener listener) {
     if (listener != null) {
-      final VirtualFile vf = RefreshVFsSynchronously.findCreatedFile(target);
+      final LocalFileSystem lfs = LocalFileSystem.getInstance();
+      final VirtualFile vf = lfs.refreshAndFindFileByIoFile(target);
       if (vf != null) {
         vf.refresh(true, true, new Runnable() {
           public void run() {

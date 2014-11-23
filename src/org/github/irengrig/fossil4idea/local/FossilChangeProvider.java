@@ -13,6 +13,7 @@ import com.intellij.util.Consumer;
 import org.github.irengrig.fossil4idea.FossilException;
 import org.github.irengrig.fossil4idea.FossilVcs;
 import org.github.irengrig.fossil4idea.util.FilterDescendantIoFiles;
+import org.github.irengrig.fossil4idea.util.FossilUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +45,7 @@ public class FossilChangeProvider implements ChangeProvider {
       }
     }
 
-    final List<File> files = ObjectsConvertor.fp2jiof(dirs);
+    final List<File> files = ObjectsConvertor.convert(dirs, FossilUtils.FILE_PATH_FILE_CONVERTOR);
     FilterDescendantIoFiles.getInstance().doFilter(files);
 
     for (File root : files) {

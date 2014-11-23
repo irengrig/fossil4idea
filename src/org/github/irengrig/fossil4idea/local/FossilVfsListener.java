@@ -9,6 +9,7 @@ import com.intellij.util.containers.Convertor;
 import com.intellij.vcsUtil.VcsFileUtil;
 import org.github.irengrig.fossil4idea.FossilVcs;
 import org.github.irengrig.fossil4idea.checkin.AddUtil;
+import org.github.irengrig.fossil4idea.util.FossilUtils;
 
 import java.io.File;
 import java.util.Collection;
@@ -75,7 +76,7 @@ public class FossilVfsListener extends VcsVFSListener {
   @Override
   protected void performDeletion(final List<FilePath> filesToDelete) {
     try {
-      AddUtil.deleteImpl(myProject, ObjectsConvertor.convert(filesToDelete, ObjectsConvertor.FILEPATH_FILE));
+      AddUtil.deleteImpl(myProject, ObjectsConvertor.convert(filesToDelete, FossilUtils.FILE_PATH_FILE_CONVERTOR));
       VcsFileUtil.markFilesDirty(myProject, filesToDelete);
     } catch (VcsException e) {
       myExceptions.add(e);

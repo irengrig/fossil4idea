@@ -8,7 +8,6 @@ import com.intellij.openapi.vcs.actions.VcsContextFactory;
 import com.intellij.openapi.vcs.changes.*;
 import com.intellij.openapi.vcs.rollback.RollbackProgressListener;
 import com.intellij.util.Consumer;
-import com.yourkit.util.FileUtil;
 import org.github.irengrig.fossil4idea.checkin.AddUtil;
 import org.github.irengrig.fossil4idea.commandLine.FCommandName;
 import org.github.irengrig.fossil4idea.commandLine.FossilLineCommand;
@@ -18,6 +17,7 @@ import org.github.irengrig.fossil4idea.repository.FossilContentRevision;
 import org.github.irengrig.fossil4idea.FossilException;
 import org.github.irengrig.fossil4idea.FossilVcs;
 import org.github.irengrig.fossil4idea.repository.FossilRevisionNumber;
+import org.github.irengrig.fossil4idea.util.FossilUtils;
 import org.github.irengrig.fossil4idea.util.RootUtil;
 
 import java.io.File;
@@ -318,6 +318,6 @@ public class LocalUtil {
   }
 
   public static void rollbackLocallyDeletedChanges(final Project project, final List<FilePath> files, final RollbackProgressListener listener) throws VcsException {
-    rollbackFiles(project, listener, ObjectsConvertor.fp2jiof(files));
+    rollbackFiles(project, listener, ObjectsConvertor.convert(files, FossilUtils.FILE_PATH_FILE_CONVERTOR));
   }
 }

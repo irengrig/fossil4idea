@@ -17,6 +17,7 @@ import com.intellij.util.FunctionUtil;
 import com.intellij.util.NullableFunction;
 import com.intellij.util.PairConsumer;
 import com.intellij.util.containers.Convertor;
+import org.github.irengrig.fossil4idea.util.FossilUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.github.irengrig.fossil4idea.FossilVcs;
@@ -108,7 +109,7 @@ public class FossilCheckinEnvironment implements CheckinEnvironment {
   public List<VcsException> scheduleMissingFileForDeletion(final List<FilePath> files) {
     final List<VcsException> result = new ArrayList<VcsException>();
     try {
-      AddUtil.deleteImpl(myFossilVcs.getProject(), ObjectsConvertor.convert(files, ObjectsConvertor.FILEPATH_FILE));
+      AddUtil.deleteImpl(myFossilVcs.getProject(), ObjectsConvertor.convert(files, FossilUtils.FILE_PATH_FILE_CONVERTOR));
     } catch (VcsException e) {
       result.add(e);
     }
