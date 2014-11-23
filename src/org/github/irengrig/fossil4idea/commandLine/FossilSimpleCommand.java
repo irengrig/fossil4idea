@@ -6,10 +6,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vcs.ProcessEventListener;
 import com.intellij.openapi.vcs.VcsException;
+import org.github.irengrig.fossil4idea.FossilException;
 import org.jetbrains.annotations.NotNull;
 import org.github.irengrig.fossil4idea.FossilVcs;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,6 +28,7 @@ public class FossilSimpleCommand extends FossilTextCommand {
   private final StringBuilder myStdout;
   private final Set<String> myStartBreakSequence;
   private final Set<String> mySkipErrors;
+  private final Set<String> myAnswerYesLines;
 
   public FossilSimpleCommand(Project project, File workingDirectory, @NotNull FCommandName commandName) {
     this(project, workingDirectory, commandName, null);
@@ -41,6 +45,7 @@ public class FossilSimpleCommand extends FossilTextCommand {
       myStartBreakSequence.add(breakSequence);
     }
     mySkipErrors = new HashSet<String>();
+    myAnswerYesLines = new HashSet<String>();
     addUsualSequences();
   }
 
@@ -59,6 +64,10 @@ public class FossilSimpleCommand extends FossilTextCommand {
     mySkipErrors.add(s);
   }
 
+  public void addAnswerYes(final String s) {
+    myAnswerYesLines.add(s);
+  }
+
   @Override
   protected void processTerminated(int exitCode) {
     //
@@ -66,6 +75,10 @@ public class FossilSimpleCommand extends FossilTextCommand {
 
   @Override
   protected void onTextAvailable(String text, Key outputType) {
+    if (tryToInteractivelyCommunicate(text)) {
+      return;
+    }
+
     if (ProcessOutputTypes.STDOUT.equals(outputType)) {
       if (isInBreakSequence(text)) {
         myStdout.append(text);
@@ -81,6 +94,24 @@ public class FossilSimpleCommand extends FossilTextCommand {
       }
       myStderr.append(text);
     }
+  }
+
+  // we use --no-warnings instead
+  private boolean tryToInteractivelyCommunicate(final String s) {
+    if (s == null || s.isEmpty()) return false;
+    for (String error : myAnswerYesLines) {
+      if (s.contains(error) || s.toLowerCase().contains(error.toLowerCase())) {
+        final OutputStream outputStream = myProcess.getOutputStream();
+        try {
+          outputStream.write("y\n".getBytes());
+          outputStream.flush();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+        return true;
+      }
+    }
+    return false;
   }
 
   private boolean isInBreakSequence(final String text) {
@@ -131,7 +162,7 @@ public class FossilSimpleCommand extends FossilTextCommand {
       private boolean skipError(String s) {
         if (s == null || s.isEmpty()) return false;
         for (String error : mySkipErrors) {
-          if (s.contains(error)) return true;
+          if (s.contains(error) || s.toLowerCase().contains(error.toLowerCase())) return true;
         }
         return false;
       }

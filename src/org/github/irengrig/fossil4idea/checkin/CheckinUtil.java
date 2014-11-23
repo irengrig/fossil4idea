@@ -154,6 +154,13 @@ public class CheckinUtil {
       String result = null;
       for (int i = 0; i < 2; i++) {
         final FossilSimpleCommand command = new FossilSimpleCommand(myProject, parent, FCommandName.commit, BREAK_SEQUENCE);
+        command.addParameters("--no-warnings");
+
+        // maybe helps someday
+        command.addAnswerYes("Commit anyhow (a=all/c=convert/y/N)?");
+        command.addAnswerYes("continue in spite of time skew (y/N)?");
+        //continue in spite of sync failure (y/N)?
+
         command.addBreakSequence("fossil knows nothing about");
         command.addBreakSequence(QUESTION);
         command.addBreakSequence("Autosync failed");

@@ -7,6 +7,8 @@ import com.intellij.openapi.vcs.VcsShowConfirmationOption;
 import com.intellij.openapi.vcs.changes.Change;
 import com.intellij.openapi.vfs.VirtualFile;
 import junit.framework.Assert;
+import org.github.irengrig.fossil4idea.commandLine.FCommandName;
+import org.github.irengrig.fossil4idea.commandLine.FossilSimpleCommand;
 import org.junit.Test;
 
 import java.io.File;
@@ -22,8 +24,13 @@ import java.util.List;
 public class FossilCheckinTest extends BaseFossilTest {
   @Test
   public void testSimpleCheckin() throws Exception {
+    final FossilSimpleCommand settingsCommand = new FossilSimpleCommand(myProject, new File(myBaseVf.getPath()), FCommandName.settings);
+
+    settingsCommand.addParameters("crnl-glob", "");
+    settingsCommand.run();
+
     setStandardConfirmation(VcsConfiguration.StandardConfirmation.ADD, VcsShowConfirmationOption.Value.DO_ACTION_SILENTLY);
-    final VirtualFile file = createFileInCommand("a with space.txt", "111");
+    final VirtualFile file = createFileInCommand("a with space.txt", "111\n\r");
     sleep(100);
     myDirtyScopeManager.markEverythingDirty();
     myChangeListManager.ensureUpToDate(false);

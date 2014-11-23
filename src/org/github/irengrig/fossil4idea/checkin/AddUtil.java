@@ -62,6 +62,7 @@ public class AddUtil {
     if (parent != null) {
       final FossilSimpleCommand command = new FossilSimpleCommand(project, parent, FCommandName.add);
       command.addParameters("--dotfiles");
+      command.addParameters("--force");
       command.addParameters(ObjectsConvertor.convert(files, new Convertor<File, String>() {
         @Override
         public String convert(final File o) {
@@ -74,6 +75,7 @@ public class AddUtil {
         if (file.getParentFile() == null) continue;
         final FossilSimpleCommand command = new FossilSimpleCommand(project, file.getParentFile(), FCommandName.add);
         command.addParameters("--dotfiles");
+        command.addParameters("--force");
         command.addParameters(file.getName());
         command.run();
       }
