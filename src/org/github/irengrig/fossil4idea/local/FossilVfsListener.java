@@ -10,8 +10,10 @@ import com.intellij.vcsUtil.VcsFileUtil;
 import org.github.irengrig.fossil4idea.FossilVcs;
 import org.github.irengrig.fossil4idea.checkin.AddUtil;
 import org.github.irengrig.fossil4idea.util.FossilUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +54,7 @@ public class FossilVfsListener extends VcsVFSListener {
           return new File(o.getPath());
         }
       }));
-      VcsFileUtil.markFilesDirty(myProject, addedFiles);
+      VcsFileUtil.markFilesDirty(myProject, ObjectsConvertor.vf2fp(FossilUtils.ensureList(addedFiles)));
     } catch (VcsException e) {
       myExceptions.add(e);
     }
