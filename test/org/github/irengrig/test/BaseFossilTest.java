@@ -122,6 +122,8 @@ public class BaseFossilTest {
     final InfoWorker infoWorker = new InfoWorker(myProject, myBase, null);
     final FossilInfo info = infoWorker.getInfo();
     Assert.assertEquals(projectId, info.getProjectId());
+
+    myBaseVf.refresh(false, true);
   }
 
   protected void startChangeProvider() {
@@ -173,6 +175,7 @@ public class BaseFossilTest {
             file.setBinaryContent(CharsetToolkit.getUtf8Bytes(content));
           }
           result.set(file);
+          parent.refresh(false, true);
         }
         catch (IOException e) {
           throw new RuntimeException(e);
@@ -193,6 +196,7 @@ public class BaseFossilTest {
             dir = parent.createChildDirectory(this, name);
           }
           result.set(dir);
+          parent.refresh(false, true);
         }
         catch (IOException e) {
           throw new RuntimeException(e);
@@ -215,7 +219,9 @@ public class BaseFossilTest {
       @Override
       protected void run() throws Throwable {
         try {
+          final VirtualFile parent = file.getParent();
           file.delete(this);
+          parent.refresh(false, true);
         }
         catch(IOException ex) {
           throw new RuntimeException(ex);
@@ -264,6 +270,8 @@ public class BaseFossilTest {
       protected void run() throws Throwable {
         try {
           file.rename(this, newName);
+          final VirtualFile parent = file.getParent();
+          parent.refresh(false, true);
         }
         catch (IOException e) {
           throw new RuntimeException(e);
@@ -277,7 +285,10 @@ public class BaseFossilTest {
       @Override
       protected void run() throws Throwable {
         try {
+          final VirtualFile parent = file.getParent();
           file.move(this, newParent);
+          parent.refresh(true, true);
+          newParent.refresh(false, true);
         }
         catch (IOException e) {
           throw new RuntimeException(e);
