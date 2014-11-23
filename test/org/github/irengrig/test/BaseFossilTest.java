@@ -66,7 +66,7 @@ public class BaseFossilTest {
       public void run() {
         try {
           final String key = "idea.load.plugins.id";
-          //System.setProperty(PlatformUtilsCore.PLATFORM_PREFIX_KEY, PlatformUtilsCore.COMMUNITY_PREFIX);
+          System.setProperty(PlatformUtilsCore.PLATFORM_PREFIX_KEY, PlatformUtilsCore.COMMUNITY_PREFIX);
           String homePath = System.getProperty(PathManager.PROPERTY_HOME_PATH);
 //          final String homePath = PathManager.getHomePath();
           new File(homePath, "test").mkdirs();
