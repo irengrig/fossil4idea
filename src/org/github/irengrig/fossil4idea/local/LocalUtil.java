@@ -240,7 +240,7 @@ public class LocalUtil {
         final File file = new File(wcRoot, e.getKey().trim());
         final ContentRevision after = createAfter(file, FileStatus.MODIFIED);
         final String newContent = new DiffUtil().execute(after.getContent(), e.getValue().toString(), file.getName());
-        final ContentRevision before = new SimpleContentRevision(newContent, new FilePathImpl(file, false), "Local");
+        final ContentRevision before = new SimpleContentRevision(newContent, createFilePath(file), "Local");
         result.add(new Change(before, after));
       }
       return result;
@@ -287,7 +287,7 @@ public class LocalUtil {
   }
 
   // seems that folders are not versioned
-  private static FilePath createFilePath(final File file) {
+  public static FilePath createFilePath(final File file) {
     if (! file.exists()) {
       return VcsContextFactory.SERVICE.getInstance().createFilePathOnDeleted(file, false);
     }

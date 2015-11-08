@@ -5,6 +5,7 @@ import com.intellij.openapi.vcs.FilePathImpl;
 import com.intellij.openapi.vcs.VcsException;
 import org.github.irengrig.fossil4idea.commandLine.FCommandName;
 import org.github.irengrig.fossil4idea.commandLine.FossilSimpleCommand;
+import org.github.irengrig.fossil4idea.local.LocalUtil;
 import org.github.irengrig.fossil4idea.local.MoveWorker;
 import org.github.irengrig.fossil4idea.FossilException;
 import org.github.irengrig.fossil4idea.repository.FossilRevisionNumber;
@@ -41,7 +42,7 @@ public class CommitWorker {
   public FossilFileRevision getBaseFileRevision(final File file) throws VcsException {
     final String baseRevision = getBaseRevision(file);
     final ArtifactInfo artifactInfo = getArtifactInfo(baseRevision, file);
-    return new FossilFileRevision(myProject, new FilePathImpl(file, false), new FossilRevisionNumber(baseRevision, artifactInfo.getDate()),
+    return new FossilFileRevision(myProject, LocalUtil.createFilePath(file), new FossilRevisionNumber(baseRevision, artifactInfo.getDate()),
         artifactInfo.getUser(), artifactInfo.getComment());
   }
 

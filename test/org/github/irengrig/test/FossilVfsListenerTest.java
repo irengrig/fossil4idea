@@ -4,6 +4,7 @@ import com.intellij.openapi.vcs.*;
 import com.intellij.openapi.vcs.changes.Change;
 import com.intellij.openapi.vfs.VirtualFile;
 import junit.framework.Assert;
+import org.github.irengrig.fossil4idea.local.LocalUtil;
 import org.junit.Test;
 
 import java.io.File;
@@ -44,7 +45,7 @@ public class FossilVfsListenerTest extends BaseFossilTest {
     Assert.assertTrue(commit == null || commit.isEmpty());
     assertNoLocalChanges();
 
-    final FilePath delFilePath = new FilePathImpl(new File(file.getPath()), false);
+    final FilePath delFilePath = LocalUtil.createFilePath(new File(file.getPath()));
     setStandardConfirmation(VcsConfiguration.StandardConfirmation.REMOVE, VcsShowConfirmationOption.Value.DO_ACTION_SILENTLY);
     deleteFileInCommand(myProject, file);
 

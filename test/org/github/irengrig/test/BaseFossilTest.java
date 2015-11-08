@@ -21,7 +21,7 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TempDirTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import com.intellij.util.PlatformUtilsCore;
+import com.intellij.util.PlatformUtils;
 import com.intellij.util.ui.UIUtil;
 import junit.framework.Assert;
 import org.jetbrains.annotations.Nullable;
@@ -66,9 +66,7 @@ public class BaseFossilTest {
       public void run() {
         try {
           final String key = "idea.load.plugins.id";
-          System.setProperty(PlatformUtilsCore.PLATFORM_PREFIX_KEY, PlatformUtilsCore.COMMUNITY_PREFIX);
           String homePath = System.getProperty(PathManager.PROPERTY_HOME_PATH);
-//          final String homePath = PathManager.getHomePath();
           new File(homePath, "test").mkdirs();
           System.setProperty(key, "fossil4idea");
           final IdeaTestFixtureFactory fixtureFactory = IdeaTestFixtureFactory.getFixtureFactory();

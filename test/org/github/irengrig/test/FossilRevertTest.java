@@ -1,5 +1,6 @@
 package org.github.irengrig.test;
 
+import com.intellij.openapi.diagnostic.LogUtil;
 import com.intellij.openapi.progress.impl.ProgressManagerImpl;
 import com.intellij.openapi.vcs.*;
 import com.intellij.openapi.vcs.changes.Change;
@@ -8,6 +9,7 @@ import com.intellij.openapi.vcs.changes.LocallyDeletedChange;
 import com.intellij.openapi.vcs.changes.ui.RollbackProgressModifier;
 import com.intellij.openapi.vfs.VirtualFile;
 import junit.framework.Assert;
+import org.github.irengrig.fossil4idea.local.LocalUtil;
 import org.junit.Test;
 
 import java.io.File;
@@ -42,7 +44,7 @@ public class FossilRevertTest extends BaseFossilTest {
     assertNoLocalChanges();
 
     final VirtualFile fileC = createFileInCommand("c with space.txt", "1115674657348");
-    final FilePath ioFileA = new FilePathImpl(new File(fileA.getPath()), false);
+    final FilePath ioFileA = LocalUtil.createFilePath(new File(fileA.getPath()));
     deleteFileInCommand(myProject, fileA);
     editFileInCommand(myProject, fileB, "747474");
 
@@ -88,7 +90,7 @@ public class FossilRevertTest extends BaseFossilTest {
     assertNoLocalChanges();
 
     setStandardConfirmation(VcsConfiguration.StandardConfirmation.REMOVE, VcsShowConfirmationOption.Value.DO_NOTHING_SILENTLY);
-    final FilePath ioFileA = new FilePathImpl(new File(fileA.getPath()), false);
+    final FilePath ioFileA = LocalUtil.createFilePath(new File(fileA.getPath()));
     deleteFileInCommand(myProject, fileA);
     assertNoLocalChanges();
     final List<LocallyDeletedChange> deletedFiles = ((ChangeListManagerImpl) myChangeListManager).getDeletedFiles();

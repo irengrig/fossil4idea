@@ -18,7 +18,6 @@ import java.util.Map;
  */
 @State(
     name = "FossilConfiguration",
-    roamingType = RoamingType.DISABLED,
     storages = {
         @Storage(file = StoragePathMacros.WORKSPACE_FILE)
     }
