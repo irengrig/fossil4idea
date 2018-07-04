@@ -7,7 +7,6 @@ import com.intellij.execution.process.ProcessListener;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.profile.ProfileManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
